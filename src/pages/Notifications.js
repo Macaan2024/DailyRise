@@ -140,13 +140,18 @@ const Notifications = () => {
       playAlarmSound();
       setTimeout(() => playAlarmSound(), 100);
       
-      if (notificationPermission === 'granted') {
-        new Notification('DailyRise Reminder ⏰', {
-          body: `Time to complete: ${reminder.habitName}`,
-          icon: '/logo192.png',
-          tag: 'dailyrise-reminder',
-          requireInteraction: true,
-        });
+      if (notificationPermission === 'granted' && 'Notification' in window) {
+        try {
+          new Notification('DailyRise Reminder ⏰', {
+            body: `Time to complete: ${reminder.habitName}`,
+            icon: '/logo192.png',
+            tag: 'dailyrise-reminder',
+            requireInteraction: true,
+          });
+        } catch (error) {
+          console.warn('Notification failed, using alert instead:', error);
+          alert(`⏰ Reminder: Time to complete ${reminder.habitName}!`);
+        }
       } else {
         alert(`⏰ Reminder: Time to complete ${reminder.habitName}!`);
       }
@@ -166,7 +171,7 @@ const Notifications = () => {
       
       <div className="px-4 py-4 pb-32">
         {notificationPermission !== 'granted' && (
-          <div className="card mb-4 bg-yellow-50 border border-yellow-200">
+          <div className="card mb-4 bg-yellow-50 border border-yellow-200 relative z-10">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -178,7 +183,7 @@ const Notifications = () => {
                 <p className="text-body text-yellow-700 mt-1">Allow notifications to receive habit reminders.</p>
                 <button
                   onClick={requestNotificationPermission}
-                  className="mt-3 bg-yellow-500 text-white px-4 py-2 rounded-lg text-body font-medium"
+                  className="mt-3 bg-yellow-500 text-white px-4 py-2 rounded-lg text-body font-medium hover:bg-yellow-600 transition-colors cursor-pointer relative z-20 pointer-events-auto"
                 >
                   Enable
                 </button>

@@ -12,7 +12,6 @@ const Profile = () => {
   
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
   const [imagePreview, setImagePreview] = useState(null);
   
   const [profileData, setProfileData] = useState({
@@ -41,12 +40,10 @@ const Profile = () => {
 
   const handleProfileChange = (e) => {
     setProfileData({ ...profileData, [e.target.name]: e.target.value });
-    setMessage({ type: '', text: '' });
   };
 
   const handlePasswordChange = (e) => {
     setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
-    setMessage({ type: '', text: '' });
   };
 
   const handleProfileSubmit = async (e) => {
@@ -251,7 +248,6 @@ const Profile = () => {
 
   const handleImageCancel = () => {
     setImagePreview(null);
-    setMessage({ type: '', text: '' });
     fileInputRef.current.value = '';
   };
 
