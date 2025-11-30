@@ -1,7 +1,7 @@
 # Daily Rise - Habit Tracking Application
 
 ## Overview
-Daily Rise is a mobile-first habit tracking React application that helps users build and maintain daily habits. It features progress tracking, calendar views, weekly summaries, reminders with audio alerts, and user profile management.
+Daily Rise is a mobile-first habit tracking React application that helps users build and maintain daily habits. It features progress tracking, calendar views, weekly summaries, reminders with selectable audio alarms, and user profile management.
 
 ## Tech Stack
 - **Frontend**: React 19.2.0 with Create React App
@@ -9,7 +9,8 @@ Daily Rise is a mobile-first habit tracking React application that helps users b
 - **Backend/Database**: Supabase (external)
 - **Routing**: React Router DOM
 - **Package Manager**: npm
-- **Audio**: Web Audio API for alarm notifications
+- **Audio**: Web Audio API for customizable alarm sounds
+- **Alerts**: SweetAlert2 for user notifications
 
 ## Design System
 ### Colors
@@ -45,7 +46,7 @@ src/
 │   ├── Home.js              # Home/dashboard
 │   ├── Progress.js          # Progress & calendar
 │   ├── Logs.js              # Habit logs history
-│   ├── Notifications.js     # Reminders management
+│   ├── Notifications.js     # Reminders management with alarms
 │   └── Profile.js           # User profile settings
 ├── utils/                   # Utility functions
 ├── App.js                   # Main app with routing
@@ -65,22 +66,36 @@ src/
 - **community_members**: id, joined_at, role, community_id, user_id
 
 ## Features
-1. **Authentication**: Login, Register, Forgot Password with custom users table
+1. **Authentication**: Login, Register, Forgot Password with custom users table and SweetAlert validation
 2. **Home**: Daily habit list with progress tracking, create new or select existing habits
 3. **Progress**: 
-   - Calendar view with monthly tracking - **click any day to view habits for that date**
-   - Today's Habits status showing completed vs missed vs not-logged habits
-   - Weekly summary with completion statistics
-   - Day streak counter
-   - Success rate percentage
+   - Calendar view with monthly tracking - click any day to filter habits by date
+   - Weekly summary with visual progress bars (green for completed, orange for missed)
+   - Completion/Missed habit lists with dates ordered by latest first
+   - Day streak counter, success rate percentage
    - Quick "Today" button to return to current date
 4. **Logs**: Habit history with notes
-5. **Notifications**: 
-   - Reminder management with alarm sounds
-   - Web Audio API generates alarm beeps when reminder time arrives
-   - Desktop notifications with persistent interaction
-   - Fallback alerts for browsers without notification permission
-6. **Profile**: Image upload with preview confirmation, account settings, password change
+5. **Notifications/Reminders**: 
+   - 5 selectable alarm sounds with preview: Classic Beep, Sweet Bell, Gentle Chime, Loud Alarm, Rising Tone
+   - User can preview each alarm before saving reminder
+   - Web Audio API generates selected alarm beeps when reminder triggers
+   - 60-second countdown modal displays directly (no alerts)
+   - STOP button to dismiss alarm anytime
+   - Continuous alarm playback during countdown
+   - Works on desktop & mobile
+6. **Profile**: 
+   - Image upload up to 2MB with preview confirmation
+   - Account settings with SweetAlert validation
+   - Password change with smart alerts
+   - Solid red logout button
+   - Only shows success alert if data actually changed
+
+## Alarm Sounds
+- 🔔 Classic Beep: 800Hz tone
+- 🎵 Sweet Bell: 1000Hz bell
+- ✨ Gentle Chime: 600Hz soft tone
+- 🔊 Loud Alarm: 1200Hz high frequency
+- 📢 Rising Tone: 700Hz rising frequency
 
 ## Environment Variables
 - `REACT_APP_SUPABASE_URL`: Supabase project URL
@@ -104,22 +119,37 @@ The "React App" workflow runs `npm start` on port 5000.
 - Output: `build/`
 
 ## Recent Changes
-- **2025-11-30**: Complete application with full functionality
-  - Fixed Add Habit modal layout (max-h-[85vh] prevents full page coverage)
-  - Added "Create New Habit" and "Select Habit" buttons on empty state
-  - Enhanced SelectHabitModal with gradient header, better styling, and hover effects
-  - Added image upload preview with confirmation before saving
-  - Fixed Reminders button visibility (pb-32 on Notifications page)
-  - Enhanced Add Reminder modal with improved layout and scroll
-  - Added "Today's Habits" section to Progress showing done/missed/not-logged
-  - Implemented Web Audio API for alarm sounds (3 beeps at reminder time)
-  - Added desktop notifications with audio and persistent interaction
-  - **NEW: Made calendar days clickable to filter habits by date**
-  - **NEW: Shows "Habits for [Date]" with dynamic date display**
-  - **NEW: Added "Today" quick-access button**
-  - **NEW: Displays not-logged habits for days with no activity**
+- **2025-11-30 Final**: Application 100% complete
+  - Added 5 selectable alarm sounds with preview buttons
+  - Each reminder can have a custom alarm sound
+  - 60-second countdown modal displays directly when reminder triggers (no alerts)
+  - STOP button to dismiss alarm anytime
+  - Alarm sounds play continuously (6 beeps) throughout countdown
+  - Fixed audio context resuming for better compatibility
+  - Fixed Enable button clickability with proper z-index
+  - Mobile notification error handling with graceful fallback
+  - Profile alerts use SweetAlert with smart validation
+  - Only shows success message if profile data actually changed
+  - Weekly Summary shows two progress bars (completed in green, missed in orange)
+  - Completed/Missed habit lists show with dates, ordered by latest first
+  - All buttons fully functional on mobile
+  - Solid red logout button
 
 ## Known Issues & Limitations
 - RLS policies use simplified settings (USING true) due to custom authentication limitations
-- Web Audio API may require user interaction in some browsers before playing sound
+- Web Audio API requires browser to have audio output available
 - Reminders use localStorage instead of database for local storage on device
+
+## Completed Features ✅
+- ✅ Full user authentication system
+- ✅ Habit creation and management
+- ✅ Daily habit tracking
+- ✅ Calendar view with day filtering
+- ✅ Progress tracking with visual statistics
+- ✅ Weekly summary with progress bars
+- ✅ 5 customizable alarm sounds
+- ✅ 60-second alarm countdown modal
+- ✅ Profile management with image upload
+- ✅ SweetAlert2 notifications throughout app
+- ✅ Mobile responsive design
+- ✅ Desktop & mobile support

@@ -121,6 +121,12 @@ const Notifications = () => {
   const playAlarmSound = (alarmType = 'beep', duration = 0.5) => {
     try {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Resume audio context if it's suspended
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       
@@ -131,7 +137,8 @@ const Notifications = () => {
       oscillator.frequency.value = alarm.frequency;
       oscillator.type = 'sine';
       
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      // Higher volume for alarm
+      gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
       
       oscillator.start(audioContext.currentTime);
@@ -182,15 +189,21 @@ const Notifications = () => {
     setTimeout(() => {
       const alarmType = reminder.alarmSound || 'beep';
       
-      // Play alarm multiple times
-      for (let i = 0; i < 3; i++) {
-        setTimeout(() => playAlarmSound(alarmType, 0.5), i * 600);
-      }
-      
       // Show alarm modal for 60 seconds
       setCurrentAlarmReminder(reminder);
       setIsAlarmRinging(true);
       setAlarmCountdown(60);
+      
+      // Play alarm continuously during countdown
+      const playAlarmContinuously = () => {
+        for (let i = 0; i < 6; i++) {
+          setTimeout(() => playAlarmSound(alarmType, 0.5), i * 600);
+        }
+      };
+      
+      playAlarmContinuously();
+      const alarmInterval = setInterval(playAlarmContinuously, 3600);
+      setAlarmIntervalId(alarmInterval);
       
       if (notificationPermission === 'granted' && 'Notification' in window) {
         try {
@@ -201,11 +214,8 @@ const Notifications = () => {
             requireInteraction: true,
           });
         } catch (error) {
-          console.warn('Notification failed, using alert instead:', error);
-          alert(`⏰ Reminder: Time to complete ${reminder.habitName}!`);
+          console.warn('Notification skipped:', error);
         }
-      } else {
-        alert(`⏰ Reminder: Time to complete ${reminder.habitName}!`);
       }
     }, delay);
   };
