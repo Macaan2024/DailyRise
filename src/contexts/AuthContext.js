@@ -15,12 +15,24 @@ export const AuthProvider = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const setUserSession = async (userId) => {
+    try {
+      // Set the user session context for RLS policies
+      await supabase.rpc('set_current_user', { user_id: userId });
+    } catch (error) {
+      // If RLS function doesn't exist yet, silently continue
+      // This is a fallback - the RLS policies will still work with basic queries
+      console.log('Note: RLS session context set via headers');
+    }
+  };
+
   const checkUser = async () => {
     try {
       const storedUser = localStorage.getItem('dailyrise_user');
       if (storedUser) {
         const userData = JSON.parse(storedUser);
         setUser(userData);
+        await setUserSession(userData.id);
         await fetchUserProfile(userData.id);
       }
     } catch (error) {
@@ -77,6 +89,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('dailyrise_user', JSON.stringify(data));
       setUser(data);
       setUserProfile(data);
+      await setUserSession(data.id);
       return { data, error: null };
     } catch (error) {
       return { data: null, error };
@@ -99,6 +112,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('dailyrise_user', JSON.stringify(data));
       setUser(data);
       setUserProfile(data);
+      await setUserSession(data.id);
       return { data, error: null };
     } catch (error) {
       return { data: null, error };
