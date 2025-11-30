@@ -78,6 +78,17 @@ const Notifications = () => {
     scheduleNotification(newReminder);
   };
 
+  useEffect(() => {
+    if (reminders.length > 0) {
+      reminders.forEach(reminder => {
+        if (reminder.enabled) {
+          scheduleNotification(reminder);
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notificationPermission]);
+
   const toggleReminder = (reminderId) => {
     const updatedReminders = reminders.map(r => 
       r.id === reminderId ? { ...r, enabled: !r.enabled } : r
@@ -92,8 +103,26 @@ const Notifications = () => {
     localStorage.setItem(`reminders_${user.id}`, JSON.stringify(updatedReminders));
   };
 
+  const playAlarmSound = () => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  };
+
   const scheduleNotification = (reminder) => {
-    if (notificationPermission !== 'granted' || !reminder.enabled) return;
+    if (!reminder.enabled) return;
 
     const [hours, minutes] = reminder.time.split(':').map(Number);
     const now = new Date();
@@ -107,11 +136,19 @@ const Notifications = () => {
     const delay = scheduledTime.getTime() - now.getTime();
 
     setTimeout(() => {
-      if (document.hidden) {
-        new Notification('DailyRise Reminder', {
+      playAlarmSound();
+      playAlarmSound();
+      setTimeout(() => playAlarmSound(), 100);
+      
+      if (notificationPermission === 'granted') {
+        new Notification('DailyRise Reminder ⏰', {
           body: `Time to complete: ${reminder.habitName}`,
           icon: '/logo192.png',
+          tag: 'dailyrise-reminder',
+          requireInteraction: true,
         });
+      } else {
+        alert(`⏰ Reminder: Time to complete ${reminder.habitName}!`);
       }
     }, delay);
   };

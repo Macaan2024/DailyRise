@@ -136,11 +136,30 @@ const Progress = () => {
     ? Math.round((weeklyStats.completed / weeklyStats.total) * 100) 
     : 0;
 
+  const getTodayHabitsStatus = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const done = [];
+    const missed = [];
+
+    habits.forEach(habit => {
+      const log = logs.find(l => l.habit_id === habit.id && l.log_date === today);
+      if (log?.status === 'done') {
+        done.push(habit);
+      } else if (log?.status === 'missed') {
+        missed.push(habit);
+      }
+    });
+
+    return { done, missed };
+  };
+
+  const { done: doneHabits, missed: missedHabits } = getTodayHabitsStatus();
+
   return (
     <Layout>
       <Header title="Progress" />
       
-      <div className="px-4 py-4">
+      <div className="px-4 py-4 pb-24">
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="card text-center">
             <p className="text-heading text-primary font-bold">{calculateStreak()}</p>
@@ -153,6 +172,53 @@ const Progress = () => {
           <div className="card text-center">
             <p className="text-heading text-primary font-bold">{weeklyStats.completed}</p>
             <p className="text-small text-gray-500">This Week</p>
+          </div>
+        </div>
+
+        <div className="card mb-6">
+          <h3 className="text-subheading font-poppins mb-4">Today's Habits</h3>
+          <div className="space-y-3">
+            {doneHabits.length > 0 && (
+              <div>
+                <p className="text-body text-gray-600 mb-2 font-medium flex items-center">
+                  <span className="w-3 h-3 rounded bg-primary mr-2"></span>
+                  Completed ({doneHabits.length})
+                </p>
+                <div className="space-y-1">
+                  {doneHabits.map(habit => (
+                    <div key={habit.id} className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
+                      <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-body text-gray-700">{habit.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {missedHabits.length > 0 && (
+              <div>
+                <p className="text-body text-gray-600 mb-2 font-medium flex items-center">
+                  <span className="w-3 h-3 rounded bg-red-400 mr-2"></span>
+                  Missed ({missedHabits.length})
+                </p>
+                <div className="space-y-1">
+                  {missedHabits.map(habit => (
+                    <div key={habit.id} className="flex items-center gap-2 p-2 bg-red-50 rounded-lg">
+                      <svg className="w-4 h-4 text-red-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-body text-gray-700">{habit.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {doneHabits.length === 0 && missedHabits.length === 0 && (
+              <p className="text-body text-gray-500 text-center py-4">No habit logs for today yet</p>
+            )}
           </div>
         </div>
 
