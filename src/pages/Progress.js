@@ -20,6 +20,18 @@ const Progress = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, currentMonth]);
 
+  // Refresh data every 3 seconds for dynamic updates
+  useEffect(() => {
+    if (!user) return;
+    
+    const interval = setInterval(() => {
+      fetchData();
+    }, 3000);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, currentMonth]);
+
   const fetchData = async () => {
     try {
       const { data: habitsData } = await supabase
@@ -338,25 +350,28 @@ const Progress = () => {
           </div>
 
           <div className="grid grid-cols-7 gap-1">
-            {getDaysInMonth().map((day, i) => {
+            {getDaysInMonth().map((day, idx) => {
+              if (!day) {
+                return <div key={`empty-${idx}`} className="bg-transparent"></div>;
+              }
+              
               const log = getLogForDay(day);
-              const isToday = day && new Date().getDate() === day && 
+              const isToday = new Date().getDate() === day && 
                 new Date().getMonth() === currentMonth.getMonth() &&
                 new Date().getFullYear() === currentMonth.getFullYear();
               const isSelected = day === selectedDay;
               
               return (
                 <button
-                  key={i}
-                  onClick={() => day && setSelectedDay(day)}
-                  disabled={!day}
+                  key={`day-${day}`}
+                  onClick={() => setSelectedDay(day)}
                   className={`aspect-square rounded-lg flex items-center justify-center text-small font-medium transition-all ${
-                    day ? getDayStatusColor(log) : 'bg-transparent'
+                    getDayStatusColor(log)
                   } ${isToday ? 'ring-2 ring-primary ring-offset-2' : ''} ${
-                    isSelected && day ? 'ring-2 ring-dark ring-offset-2' : ''
+                    isSelected ? 'ring-2 ring-dark ring-offset-2' : ''
                   } ${
                     log?.status === 'done' ? 'text-white' : 'text-gray-600'
-                  } ${day ? 'cursor-pointer hover:opacity-80' : ''}`}
+                  } cursor-pointer hover:opacity-80`}
                 >
                   {day}
                 </button>
