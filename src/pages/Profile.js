@@ -85,8 +85,8 @@ const Profile = () => {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setMessage({ type: 'error', text: 'Image must be less than 5MB' });
+    if (file.size > 2 * 1024 * 1024) {
+      setMessage({ type: 'error', text: 'Image must be less than 2MB' });
       return;
     }
 
@@ -95,15 +95,53 @@ const Profile = () => {
     try {
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const base64Image = reader.result;
-        
-        const { error } = await updateProfile({ image: base64Image });
-        
-        setLoading(false);
-        if (error) {
-          setMessage({ type: 'error', text: 'Failed to upload image' });
-        } else {
-          setMessage({ type: 'success', text: 'Profile photo updated!' });
+        try {
+          const img = new Image();
+          img.onload = async () => {
+            // Compress image by drawing on canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set max dimensions
+            let width = img.width;
+            let height = img.height;
+            const maxWidth = 400;
+            const maxHeight = 400;
+            
+            if (width > height) {
+              if (width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width *= maxHeight / height;
+                height = maxHeight;
+              }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Convert to base64 with compression
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            
+            const { error } = await updateProfile({ image: compressedBase64 });
+            
+            setLoading(false);
+            if (error) {
+              console.error('Upload error:', error);
+              setMessage({ type: 'error', text: 'Failed to upload image. Please try a smaller image.' });
+            } else {
+              setMessage({ type: 'success', text: 'Profile photo updated!' });
+            }
+          };
+          img.src = reader.result;
+        } catch (error) {
+          setLoading(false);
+          console.error('Compression error:', error);
+          setMessage({ type: 'error', text: 'Failed to process image' });
         }
       };
       reader.readAsDataURL(file);
