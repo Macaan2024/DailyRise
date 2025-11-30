@@ -131,7 +131,7 @@ const AddHabitModal = ({ habit, onClose, onSave, onDelete }) => {
         </div>
 
         {/* Action Buttons - Fixed at Bottom */}
-        <div className="flex-shrink-0 bg-white border-t border-gray-100 px-4 py-4 space-y-3">
+        <div className="flex-shrink-0 bg-white border-t border-gray-100 px-4 py-4 space-y-3 pb-24">
           <button 
             type="submit"
             className="btn-primary w-full py-3 rounded-lg font-medium text-white"
