@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/Layout';
@@ -15,10 +15,10 @@ const Profile = () => {
   const [imagePreview, setImagePreview] = useState(null);
   
   const [profileData, setProfileData] = useState({
-    firstname: userProfile?.firstname || '',
-    lastname: userProfile?.lastname || '',
-    age: userProfile?.age || '',
-    gender: userProfile?.gender || '',
+    firstname: '',
+    lastname: '',
+    age: '',
+    gender: '',
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -26,6 +26,17 @@ const Profile = () => {
     newPassword: '',
     confirmPassword: '',
   });
+
+  useEffect(() => {
+    if (userProfile) {
+      setProfileData({
+        firstname: userProfile.firstname || '',
+        lastname: userProfile.lastname || '',
+        age: userProfile.age || '',
+        gender: userProfile.gender || '',
+      });
+    }
+  }, [userProfile]);
 
   const handleProfileChange = (e) => {
     setProfileData({ ...profileData, [e.target.name]: e.target.value });
@@ -162,7 +173,7 @@ const Profile = () => {
     <Layout>
       <Header title="Profile" showProfile={false} showBack={true} />
       
-      <div className="px-4 py-4">
+      <div className="px-4 py-4 pb-32">
         <div className="flex flex-col items-center mb-6">
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-primary overflow-hidden flex items-center justify-center">
