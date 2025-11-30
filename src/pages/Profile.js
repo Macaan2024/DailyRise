@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/Layout';
 import Header from '../components/Header';
@@ -50,15 +51,42 @@ const Profile = () => {
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if any data changed
+    const hasChanges = 
+      profileData.firstname !== userProfile?.firstname ||
+      profileData.lastname !== userProfile?.lastname ||
+      profileData.age !== userProfile?.age ||
+      profileData.gender !== userProfile?.gender;
+    
+    if (!hasChanges) {
+      Swal.fire({
+        icon: 'info',
+        title: 'No Changes',
+        text: 'Nothing was modified',
+        confirmButtonColor: '#043915',
+      });
+      return;
+    }
+
     setLoading(true);
-    
     const { error } = await updateProfile(profileData);
-    
     setLoading(false);
+    
     if (error) {
-      setMessage({ type: 'error', text: error.message });
+      Swal.fire({
+        icon: 'error',
+        title: 'Update Failed',
+        text: error.message,
+        confirmButtonColor: '#043915',
+      });
     } else {
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Profile updated successfully!',
+        confirmButtonColor: '#043915',
+      });
     }
   };
 
@@ -66,24 +94,53 @@ const Profile = () => {
     e.preventDefault();
     
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setMessage({ type: 'error', text: 'Passwords do not match' });
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Passwords do not match',
+        confirmButtonColor: '#043915',
+      });
       return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      setMessage({ type: 'error', text: 'Password must be at least 6 characters' });
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Password must be at least 6 characters',
+        confirmButtonColor: '#043915',
+      });
+      return;
+    }
+
+    if (!passwordData.currentPassword) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Please enter your current password',
+        confirmButtonColor: '#043915',
+      });
       return;
     }
 
     setLoading(true);
-    
     const { error } = await updatePassword(passwordData.currentPassword, passwordData.newPassword);
-    
     setLoading(false);
+    
     if (error) {
-      setMessage({ type: 'error', text: error.message });
+      Swal.fire({
+        icon: 'error',
+        title: 'Update Failed',
+        text: error.message,
+        confirmButtonColor: '#043915',
+      });
     } else {
-      setMessage({ type: 'success', text: 'Password updated successfully!' });
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Password updated successfully!',
+        confirmButtonColor: '#043915',
+      });
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     }
   };
@@ -93,12 +150,22 @@ const Profile = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setMessage({ type: 'error', text: 'Please select an image file' });
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Please select an image file',
+        confirmButtonColor: '#043915',
+      });
       return;
     }
 
     if (file.size > 2040 * 1024) {
-      setMessage({ type: 'error', text: 'Image must be less than 2MB' });
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Image must be less than 2MB',
+        confirmButtonColor: '#043915',
+      });
       return;
     }
 
@@ -124,21 +191,35 @@ const Profile = () => {
             
             const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
             setImagePreview(compressedBase64);
-            setMessage({ type: '', text: '' });
           };
           img.onerror = () => {
-            setMessage({ type: 'error', text: 'Invalid image file' });
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Invalid image file',
+              confirmButtonColor: '#043915',
+            });
           };
           img.src = reader.result;
         } catch (error) {
           console.error('Compression error:', error);
-          setMessage({ type: 'error', text: 'Failed to process image' });
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to process image',
+            confirmButtonColor: '#043915',
+          });
         }
       };
       reader.readAsDataURL(file);
     } catch (error) {
       console.error('Upload error:', error);
-      setMessage({ type: 'error', text: 'Failed to upload image' });
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to upload image',
+        confirmButtonColor: '#043915',
+      });
     }
   };
 
@@ -151,9 +232,19 @@ const Profile = () => {
 
     if (error) {
       console.error('Upload error:', error);
-      setMessage({ type: 'error', text: 'Failed to upload image' });
+      Swal.fire({
+        icon: 'error',
+        title: 'Upload Failed',
+        text: 'Failed to upload image',
+        confirmButtonColor: '#043915',
+      });
     } else {
-      setMessage({ type: 'success', text: 'Profile photo updated!' });
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Profile photo updated!',
+        confirmButtonColor: '#043915',
+      });
       setImagePreview(null);
     }
   };
@@ -256,14 +347,6 @@ const Profile = () => {
                 Cancel
               </button>
             </div>
-          </div>
-        )}
-
-        {message.text && (
-          <div className={`mb-4 p-3 rounded-lg text-body ${
-            message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
-          }`}>
-            {message.text}
           </div>
         )}
 
