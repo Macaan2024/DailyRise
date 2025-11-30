@@ -462,7 +462,7 @@ const Profile = () => {
         <div className="mt-8 pt-6 border-t border-gray-100">
           <button
             onClick={handleLogout}
-            className="w-full py-3 rounded-lg bg-red-50 text-red-500 text-body font-medium hover:bg-red-100 transition-all"
+            className="w-full py-3 rounded-lg bg-red-500 text-white text-body font-medium hover:bg-red-600 transition-all"
           >
             Sign Out
           </button>
