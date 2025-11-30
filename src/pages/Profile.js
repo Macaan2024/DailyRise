@@ -97,8 +97,8 @@ const Profile = () => {
       return;
     }
 
-    if (file.size > 500 * 1024) {
-      setMessage({ type: 'error', text: 'Image must be less than 500KB' });
+    if (file.size > 2040 * 1024) {
+      setMessage({ type: 'error', text: 'Image must be less than 2MB' });
       return;
     }
 
