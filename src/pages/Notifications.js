@@ -4,6 +4,14 @@ import { supabase } from '../lib/supabaseClient';
 import Layout from '../components/Layout';
 import Header from '../components/Header';
 
+const alarmSounds = [
+  { id: 'beep', name: '🔔 Classic Beep', frequency: 800 },
+  { id: 'bell', name: '🎵 Sweet Bell', frequency: 1000 },
+  { id: 'chime', name: '✨ Gentle Chime', frequency: 600 },
+  { id: 'alarm', name: '🔊 Loud Alarm', frequency: 1200 },
+  { id: 'tone', name: '📢 Rising Tone', frequency: 700 },
+];
+
 const Notifications = () => {
   const { user } = useAuth();
   const [habits, setHabits] = useState([]);
@@ -12,7 +20,12 @@ const Notifications = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedHabit, setSelectedHabit] = useState('');
   const [reminderTime, setReminderTime] = useState('09:00');
+  const [selectedAlarm, setSelectedAlarm] = useState('beep');
   const [notificationPermission, setNotificationPermission] = useState('default');
+  const [isAlarmRinging, setIsAlarmRinging] = useState(false);
+  const [alarmCountdown, setAlarmCountdown] = useState(0);
+  const [currentAlarmReminder, setCurrentAlarmReminder] = useState(null);
+  const [alarmIntervalId, setAlarmIntervalId] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -64,6 +77,7 @@ const Notifications = () => {
       habitId: parseInt(selectedHabit),
       habitName: habit?.name || 'Unknown',
       time: reminderTime,
+      alarmSound: selectedAlarm,
       enabled: true,
     };
 
@@ -74,6 +88,7 @@ const Notifications = () => {
     setShowAddModal(false);
     setSelectedHabit('');
     setReminderTime('09:00');
+    setSelectedAlarm('beep');
 
     scheduleNotification(newReminder);
   };
@@ -103,23 +118,52 @@ const Notifications = () => {
     localStorage.setItem(`reminders_${user.id}`, JSON.stringify(updatedReminders));
   };
 
-  const playAlarmSound = () => {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.value = 800;
-    oscillator.type = 'sine';
-    
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
+  const playAlarmSound = (alarmType = 'beep', duration = 0.5) => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      const alarm = alarmSounds.find(a => a.id === alarmType) || alarmSounds[0];
+      oscillator.frequency.value = alarm.frequency;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + duration);
+    } catch (error) {
+      console.warn('Audio context error:', error);
+    }
   };
+
+  const playPreview = (alarmType) => {
+    playAlarmSound(alarmType, 1);
+  };
+
+  const stopAlarm = () => {
+    setIsAlarmRinging(false);
+    setCurrentAlarmReminder(null);
+    if (alarmIntervalId) {
+      clearInterval(alarmIntervalId);
+      setAlarmIntervalId(null);
+    }
+  };
+
+  useEffect(() => {
+    if (isAlarmRinging && alarmCountdown > 0) {
+      const timer = setTimeout(() => {
+        setAlarmCountdown(alarmCountdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (isAlarmRinging && alarmCountdown === 0) {
+      stopAlarm();
+    }
+  }, [isAlarmRinging, alarmCountdown]);
 
   const scheduleNotification = (reminder) => {
     if (!reminder.enabled) return;
@@ -136,9 +180,17 @@ const Notifications = () => {
     const delay = scheduledTime.getTime() - now.getTime();
 
     setTimeout(() => {
-      playAlarmSound();
-      playAlarmSound();
-      setTimeout(() => playAlarmSound(), 100);
+      const alarmType = reminder.alarmSound || 'beep';
+      
+      // Play alarm multiple times
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => playAlarmSound(alarmType, 0.5), i * 600);
+      }
+      
+      // Show alarm modal for 60 seconds
+      setCurrentAlarmReminder(reminder);
+      setIsAlarmRinging(true);
+      setAlarmCountdown(60);
       
       if (notificationPermission === 'granted' && 'Notification' in window) {
         try {
@@ -309,6 +361,33 @@ const Notifications = () => {
                     className="input-field w-full"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-body text-gray-600 mb-3 font-medium">Alarm Sound</label>
+                  <div className="space-y-2">
+                    {alarmSounds.map((alarm) => (
+                      <div key={alarm.id} className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg">
+                        <input
+                          type="radio"
+                          id={`alarm-${alarm.id}`}
+                          name="alarm"
+                          value={alarm.id}
+                          checked={selectedAlarm === alarm.id}
+                          onChange={(e) => setSelectedAlarm(e.target.value)}
+                          className="w-4 h-4"
+                        />
+                        <label htmlFor={`alarm-${alarm.id}`} className="flex-1 text-body text-gray-700">{alarm.name}</label>
+                        <button
+                          type="button"
+                          onClick={() => playPreview(alarm.id)}
+                          className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded hover:bg-gray-200"
+                        >
+                          Play
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -328,6 +407,32 @@ const Notifications = () => {
                 Cancel
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {isAlarmRinging && currentAlarmReminder && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 max-w-sm mx-4 text-center">
+            <div className="w-24 h-24 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4 animate-pulse">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9 4a1 1 0 112 0v5a1 1 0 11-2 0V4z" />
+              </svg>
+            </div>
+            <h2 className="text-heading font-poppins text-dark mb-2">Reminder!</h2>
+            <p className="text-body text-gray-600 mb-4">{currentAlarmReminder.habitName}</p>
+            
+            <div className="mb-6 p-4 rounded-lg bg-primary/10">
+              <p className="text-5xl font-bold text-primary">{alarmCountdown}</p>
+              <p className="text-body text-gray-600 mt-1">seconds</p>
+            </div>
+
+            <button
+              onClick={stopAlarm}
+              className="w-full py-3 rounded-lg bg-red-500 text-white text-body font-medium hover:bg-red-600 transition-all"
+            >
+              STOP
+            </button>
           </div>
         </div>
       )}
