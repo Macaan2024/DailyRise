@@ -45,7 +45,7 @@ const Login = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h1 className="text-heading font-poppins text-dark mb-2">Welcome to DailyRise</h1>
+          <h1 className="text-heading font-poppins text-dark mb-2">Welcome to Daily Rises</h1>
           <p className="text-body text-gray-500">Sign in to track your habits</p>
         </div>
 
