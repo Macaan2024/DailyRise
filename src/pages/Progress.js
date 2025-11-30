@@ -10,6 +10,7 @@ const Progress = () => {
   const [logs, setLogs] = useState([]);
   const [selectedHabit, setSelectedHabit] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState(new Date().getDate());
   const [weeklyStats, setWeeklyStats] = useState({ completed: 0, missed: 0, total: 0 });
 
   useEffect(() => {
@@ -110,7 +111,9 @@ const Progress = () => {
   };
 
   const changeMonth = (delta) => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + delta, 1));
+    const newMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + delta, 1);
+    setCurrentMonth(newMonth);
+    setSelectedDay(new Date().getDate());
   };
 
   const calculateStreak = () => {
@@ -136,24 +139,36 @@ const Progress = () => {
     ? Math.round((weeklyStats.completed / weeklyStats.total) * 100) 
     : 0;
 
-  const getTodayHabitsStatus = () => {
-    const today = new Date().toISOString().split('T')[0];
+  const getSelectedDayHabitsStatus = () => {
+    const year = currentMonth.getFullYear();
+    const month = String(currentMonth.getMonth() + 1).padStart(2, '0');
+    const day = String(selectedDay).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    
     const done = [];
     const missed = [];
+    const notLogged = [];
 
     habits.forEach(habit => {
-      const log = logs.find(l => l.habit_id === habit.id && l.log_date === today);
+      const log = logs.find(l => l.habit_id === habit.id && l.log_date === dateStr);
       if (log?.status === 'done') {
         done.push(habit);
       } else if (log?.status === 'missed') {
         missed.push(habit);
+      } else {
+        notLogged.push(habit);
       }
     });
 
-    return { done, missed };
+    return { done, missed, notLogged };
   };
 
-  const { done: doneHabits, missed: missedHabits } = getTodayHabitsStatus();
+  const { done: doneHabits, missed: missedHabits, notLogged: notLoggedHabits } = getSelectedDayHabitsStatus();
+
+  const getFormattedSelectedDate = () => {
+    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDay);
+    return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  };
 
   return (
     <Layout>
@@ -176,7 +191,21 @@ const Progress = () => {
         </div>
 
         <div className="card mb-6">
-          <h3 className="text-subheading font-poppins mb-4">Today's Habits</h3>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-subheading font-poppins">Habits for</h3>
+              <p className="text-body text-gray-500">{getFormattedSelectedDate()}</p>
+            </div>
+            <button
+              onClick={() => {
+                setSelectedDay(new Date().getDate());
+                setCurrentMonth(new Date());
+              }}
+              className="text-small text-primary font-medium hover:bg-primary/10 px-3 py-1 rounded"
+            >
+              Today
+            </button>
+          </div>
           <div className="space-y-3">
             {doneHabits.length > 0 && (
               <div>
@@ -216,8 +245,27 @@ const Progress = () => {
               </div>
             )}
 
-            {doneHabits.length === 0 && missedHabits.length === 0 && (
-              <p className="text-body text-gray-500 text-center py-4">No habit logs for today yet</p>
+            {notLoggedHabits.length > 0 && doneHabits.length === 0 && missedHabits.length === 0 && (
+              <div>
+                <p className="text-body text-gray-600 mb-2 font-medium flex items-center">
+                  <span className="w-3 h-3 rounded bg-gray-100 mr-2"></span>
+                  Not Logged ({notLoggedHabits.length})
+                </p>
+                <div className="space-y-1">
+                  {notLoggedHabits.map(habit => (
+                    <div key={habit.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-body text-gray-700">{habit.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {doneHabits.length === 0 && missedHabits.length === 0 && notLoggedHabits.length === 0 && (
+              <p className="text-body text-gray-500 text-center py-4">No habits for this day</p>
             )}
           </div>
         </div>
@@ -295,18 +343,23 @@ const Progress = () => {
               const isToday = day && new Date().getDate() === day && 
                 new Date().getMonth() === currentMonth.getMonth() &&
                 new Date().getFullYear() === currentMonth.getFullYear();
+              const isSelected = day === selectedDay;
               
               return (
-                <div
+                <button
                   key={i}
-                  className={`aspect-square rounded-lg flex items-center justify-center text-small ${
+                  onClick={() => day && setSelectedDay(day)}
+                  disabled={!day}
+                  className={`aspect-square rounded-lg flex items-center justify-center text-small font-medium transition-all ${
                     day ? getDayStatusColor(log) : 'bg-transparent'
                   } ${isToday ? 'ring-2 ring-primary ring-offset-2' : ''} ${
+                    isSelected && day ? 'ring-2 ring-dark ring-offset-2' : ''
+                  } ${
                     log?.status === 'done' ? 'text-white' : 'text-gray-600'
-                  }`}
+                  } ${day ? 'cursor-pointer hover:opacity-80' : ''}`}
                 >
                   {day}
-                </div>
+                </button>
               );
             })}
           </div>

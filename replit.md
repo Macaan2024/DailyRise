@@ -68,18 +68,19 @@ src/
 1. **Authentication**: Login, Register, Forgot Password with custom users table
 2. **Home**: Daily habit list with progress tracking, create new or select existing habits
 3. **Progress**: 
-   - Calendar view with monthly tracking
+   - Calendar view with monthly tracking - **click any day to view habits for that date**
+   - Today's Habits status showing completed vs missed vs not-logged habits
    - Weekly summary with completion statistics
-   - Today's Habits status showing completed vs missed habits
    - Day streak counter
    - Success rate percentage
+   - Quick "Today" button to return to current date
 4. **Logs**: Habit history with notes
 5. **Notifications**: 
    - Reminder management with alarm sounds
    - Web Audio API generates alarm beeps when reminder time arrives
    - Desktop notifications with persistent interaction
    - Fallback alerts for browsers without notification permission
-6. **Profile**: Image upload with compression, account settings, password change
+6. **Profile**: Image upload with preview confirmation, account settings, password change
 
 ## Environment Variables
 - `REACT_APP_SUPABASE_URL`: Supabase project URL
@@ -103,17 +104,20 @@ The "React App" workflow runs `npm start` on port 5000.
 - Output: `build/`
 
 ## Recent Changes
-- **2025-11-30**: Final enhancements and bug fixes
+- **2025-11-30**: Complete application with full functionality
   - Fixed Add Habit modal layout (max-h-[85vh] prevents full page coverage)
   - Added "Create New Habit" and "Select Habit" buttons on empty state
   - Enhanced SelectHabitModal with gradient header, better styling, and hover effects
-  - Added image upload preview with confirmation before saving to database
-  - Fixed Reminders button visibility by adding pb-32 to Notifications page
-  - Enhanced Add Reminder modal with improved layout
-  - Added "Today's Habits" section to Progress page showing done vs missed habits
-  - Implemented Web Audio API for alarm sounds (3 beeps when reminder time arrives)
+  - Added image upload preview with confirmation before saving
+  - Fixed Reminders button visibility (pb-32 on Notifications page)
+  - Enhanced Add Reminder modal with improved layout and scroll
+  - Added "Today's Habits" section to Progress showing done/missed/not-logged
+  - Implemented Web Audio API for alarm sounds (3 beeps at reminder time)
   - Added desktop notifications with audio and persistent interaction
-  - Improved notification scheduling with fallback alerts
+  - **NEW: Made calendar days clickable to filter habits by date**
+  - **NEW: Shows "Habits for [Date]" with dynamic date display**
+  - **NEW: Added "Today" quick-access button**
+  - **NEW: Displays not-logged habits for days with no activity**
 
 ## Known Issues & Limitations
 - RLS policies use simplified settings (USING true) due to custom authentication limitations
