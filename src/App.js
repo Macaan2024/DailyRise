@@ -9,6 +9,8 @@ import Home from './pages/Home';
 import Progress from './pages/Progress';
 import Logs from './pages/Logs';
 import Notifications from './pages/Notifications';
+import Goals from './pages/Goals';
+import Badges from './pages/Badges';
 import Profile from './pages/Profile';
 
 const ProtectedRoute = ({ children }) => {
@@ -94,6 +96,18 @@ function App() {
             <Route path="/notifications" element={
               <ProtectedRoute>
                 <Notifications />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/goals" element={
+              <ProtectedRoute>
+                <Goals />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/badges" element={
+              <ProtectedRoute>
+                <Badges />
               </ProtectedRoute>
             } />
             
