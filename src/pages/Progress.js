@@ -207,46 +207,61 @@ const Progress = () => {
         </div>
 
         <div className="card mb-6">
-          <h3 className="text-body font-poppins font-medium mb-3">Color Guide</h3>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-12 h-12 bg-green-50 rounded-lg border-2 border-primary flex items-center justify-center">
-                <span className="text-xl text-primary">✓</span>
-              </div>
-              <p className="text-xs text-gray-600 text-center font-medium">Done</p>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-12 h-12 bg-red-50 rounded-lg border-2 border-red-500 flex items-center justify-center">
-                <span className="text-xl text-red-500">✗</span>
-              </div>
-              <p className="text-xs text-gray-600 text-center font-medium">Missed</p>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-12 h-12 bg-gray-50 rounded-lg border-2 border-gray-300 flex items-center justify-center">
-                <span className="text-xl text-gray-400">○</span>
-              </div>
-              <p className="text-xs text-gray-600 text-center font-medium">Not Logged</p>
-            </div>
-          </div>
-        </div>
+          <h3 className="text-subheading font-poppins mb-4">Weekly Summary</h3>
+          <div className="space-y-4">
+            {weeklyStats.completed === 0 && weeklyStats.missed === 0 ? (
+              <p className="text-body text-gray-500 text-center py-3">No data</p>
+            ) : (
+              <>
+                {weeklyStats.completed > 0 || weeklyStats.missed > 0 ? (
+                  <>
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-body text-gray-600">Completed</span>
+                        <span className="text-body font-medium text-primary">
+                          {weeklyStats.completed === 0 && weeklyStats.missed === 0 
+                            ? 'No data' 
+                            : `${Math.round((weeklyStats.completed / (weeklyStats.completed + weeklyStats.missed)) * 100)}%`}
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div 
+                          className="bg-primary h-3 rounded-full transition-all duration-300"
+                          style={{ width: weeklyStats.completed === 0 && weeklyStats.missed === 0 ? '0%' : `${Math.round((weeklyStats.completed / (weeklyStats.completed + weeklyStats.missed)) * 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
 
-        <div className="card mb-6">
-          <h3 className="text-subheading font-poppins mb-3">Weekly Summary</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-body text-gray-600">Completed</span>
-              <span className="text-body font-medium text-primary">{weeklyStats.completed}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-body text-gray-600">Missed</span>
-              <span className="text-body font-medium text-red-500">{weeklyStats.missed}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-primary h-2 rounded-full transition-all duration-300"
-                style={{ width: `${successRate}%` }}
-              ></div>
-            </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-body text-gray-600">Missed</span>
+                        <span className="text-body font-medium text-orange-500">
+                          {weeklyStats.completed === 0 && weeklyStats.missed === 0 
+                            ? 'No data' 
+                            : `${Math.round((weeklyStats.missed / (weeklyStats.completed + weeklyStats.missed)) * 100)}%`}
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div 
+                          className="bg-orange-500 h-3 rounded-full transition-all duration-300"
+                          style={{ width: weeklyStats.completed === 0 && weeklyStats.missed === 0 ? '0%' : `${Math.round((weeklyStats.missed / (weeklyStats.completed + weeklyStats.missed)) * 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-body text-gray-600">Data</span>
+                      <span className="text-body font-medium text-gray-400">No data</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div className="bg-gray-300 h-3 rounded-full"></div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
 
