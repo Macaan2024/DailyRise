@@ -52,17 +52,17 @@ const AddHabitModal = ({ habit, onClose, onSave, onDelete }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-      <div className="bg-white w-full rounded-t-2xl max-h-[85vh] flex flex-col animate-slide-up">
+      <form onSubmit={handleSubmit} className="bg-white w-full rounded-t-2xl max-h-[85vh] flex flex-col animate-slide-up">
         <div className="flex-shrink-0 bg-white border-b border-gray-100 px-4 py-4 flex items-center justify-between rounded-t-2xl">
           <h2 className="text-heading font-poppins">{habit ? 'Edit Habit' : 'Add New Habit'}</h2>
-          <button onClick={onClose} className="p-2 -mr-2 text-gray-400 hover:text-gray-600">
+          <button type="button" onClick={onClose} className="p-2 -mr-2 text-gray-400 hover:text-gray-600">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div className="flex-1 overflow-auto p-4">
+        <div className="flex-1 overflow-y-auto px-4 py-4">
           <div className="space-y-6">
             <div>
               <label className="block text-body text-gray-600 mb-2">Habit Name</label>
@@ -122,8 +122,7 @@ const AddHabitModal = ({ habit, onClose, onSave, onDelete }) => {
 
         <div className="flex-shrink-0 bg-white border-t border-gray-100 p-4 space-y-3 safe-bottom">
           <button 
-            type="button"
-            onClick={handleSubmit} 
+            type="submit"
             className="btn-primary w-full py-3"
           >
             {habit ? 'Update Habit' : 'Add Habit'}
@@ -143,7 +142,7 @@ const AddHabitModal = ({ habit, onClose, onSave, onDelete }) => {
             </button>
           )}
         </div>
-      </div>
+      </form>
     </div>
   );
 };

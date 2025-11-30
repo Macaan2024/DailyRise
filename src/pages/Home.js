@@ -172,7 +172,7 @@ const Home = () => {
 
   return (
     <Layout>
-      <Header title="Daily Rises" />
+      <Header title="Daily Rise" />
       
       <div className="px-4 py-4">
         <div className="mb-6">

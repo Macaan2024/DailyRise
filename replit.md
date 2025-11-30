@@ -1,7 +1,7 @@
-# Daily Rises - Habit Tracking Application
+# Daily Rise - Habit Tracking Application
 
 ## Overview
-Daily Rises is a mobile-first habit tracking React application that helps users build and maintain daily habits. It features progress tracking, calendar views, weekly summaries, reminders, and user profile management.
+Daily Rise is a mobile-first habit tracking React application that helps users build and maintain daily habits. It features progress tracking, calendar views, weekly summaries, reminders, and user profile management.
 
 ## Tech Stack
 - **Frontend**: React 19.2.0 with Create React App
