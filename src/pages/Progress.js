@@ -227,14 +227,12 @@ const Progress = () => {
               <div>
                 <p className="text-body text-gray-600 mb-2 font-medium flex items-center">
                   <span className="w-3 h-3 rounded bg-primary mr-2"></span>
-                  Completed ({doneHabits.length})
+                  ✓ Done - {doneHabits.length}
                 </p>
                 <div className="space-y-1">
                   {doneHabits.map(habit => (
                     <div key={habit.id} className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
-                      <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
+                      <span className="text-lg text-primary">✓</span>
                       <span className="text-body text-gray-700">{habit.name}</span>
                     </div>
                   ))}
@@ -246,14 +244,12 @@ const Progress = () => {
               <div>
                 <p className="text-body text-gray-600 mb-2 font-medium flex items-center">
                   <span className="w-3 h-3 rounded bg-red-400 mr-2"></span>
-                  Missed ({missedHabits.length})
+                  ✗ Not Done - {missedHabits.length}
                 </p>
                 <div className="space-y-1">
                   {missedHabits.map(habit => (
                     <div key={habit.id} className="flex items-center gap-2 p-2 bg-red-50 rounded-lg">
-                      <svg className="w-4 h-4 text-red-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                      </svg>
+                      <span className="text-lg text-red-500">✗</span>
                       <span className="text-body text-gray-700">{habit.name}</span>
                     </div>
                   ))}
@@ -261,18 +257,16 @@ const Progress = () => {
               </div>
             )}
 
-            {notLoggedHabits.length > 0 && doneHabits.length === 0 && missedHabits.length === 0 && (
+            {notLoggedHabits.length > 0 && (
               <div>
                 <p className="text-body text-gray-600 mb-2 font-medium flex items-center">
-                  <span className="w-3 h-3 rounded bg-gray-100 mr-2"></span>
-                  Not Logged ({notLoggedHabits.length})
+                  <span className="w-3 h-3 rounded bg-gray-300 mr-2"></span>
+                  ○ No Status - {notLoggedHabits.length}
                 </p>
                 <div className="space-y-1">
                   {notLoggedHabits.map(habit => (
                     <div key={habit.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                      </svg>
+                      <span className="text-lg text-gray-400">○</span>
                       <span className="text-body text-gray-700">{habit.name}</span>
                     </div>
                   ))}
@@ -281,7 +275,7 @@ const Progress = () => {
             )}
 
             {doneHabits.length === 0 && missedHabits.length === 0 && notLoggedHabits.length === 0 && (
-              <p className="text-body text-gray-500 text-center py-4">No habits for this day</p>
+              <p className="text-body text-gray-500 text-center py-4">No habits exist yet</p>
             )}
           </div>
         </div>
