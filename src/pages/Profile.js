@@ -85,12 +85,13 @@ const Profile = () => {
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setMessage({ type: 'error', text: 'Image must be less than 2MB' });
+    if (file.size > 500 * 1024) {
+      setMessage({ type: 'error', text: 'Image must be less than 500KB' });
       return;
     }
 
     setLoading(true);
+    setMessage({ type: '', text: '' });
 
     try {
       const reader = new FileReader();
@@ -98,44 +99,38 @@ const Profile = () => {
         try {
           const img = new Image();
           img.onload = async () => {
-            // Compress image by drawing on canvas
+            // Aggressively compress image
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
-            // Set max dimensions
-            let width = img.width;
-            let height = img.height;
-            const maxWidth = 400;
-            const maxHeight = 400;
+            // Set very small dimensions for profile picture
+            const size = 200;
+            canvas.width = size;
+            canvas.height = size;
             
-            if (width > height) {
-              if (width > maxWidth) {
-                height *= maxWidth / width;
-                width = maxWidth;
-              }
-            } else {
-              if (height > maxHeight) {
-                width *= maxHeight / height;
-                height = maxHeight;
-              }
-            }
+            // Calculate center crop
+            const sourceSize = Math.min(img.width, img.height);
+            const sx = (img.width - sourceSize) / 2;
+            const sy = (img.height - sourceSize) / 2;
             
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(img, 0, 0, width, height);
+            ctx.drawImage(img, sx, sy, sourceSize, sourceSize, 0, 0, size, size);
             
-            // Convert to base64 with compression
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            // Heavily compress to JPEG
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
             
             const { error } = await updateProfile({ image: compressedBase64 });
             
             setLoading(false);
             if (error) {
               console.error('Upload error:', error);
-              setMessage({ type: 'error', text: 'Failed to upload image. Please try a smaller image.' });
+              setMessage({ type: 'error', text: 'RLS policy blocking upload. Image feature is being prepared.' });
             } else {
               setMessage({ type: 'success', text: 'Profile photo updated!' });
             }
+          };
+          img.onerror = () => {
+            setLoading(false);
+            setMessage({ type: 'error', text: 'Invalid image file' });
           };
           img.src = reader.result;
         } catch (error) {
@@ -147,6 +142,7 @@ const Profile = () => {
       reader.readAsDataURL(file);
     } catch (error) {
       setLoading(false);
+      console.error('Upload error:', error);
       setMessage({ type: 'error', text: 'Failed to upload image' });
     }
   };
