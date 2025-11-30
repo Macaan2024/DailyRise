@@ -12,6 +12,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [imagePreview, setImagePreview] = useState(null);
   
   const [profileData, setProfileData] = useState({
     firstname: userProfile?.firstname || '',
@@ -76,7 +77,7 @@ const Profile = () => {
     }
   };
 
-  const handleImageUpload = async (e) => {
+  const handleImageSelect = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -90,61 +91,66 @@ const Profile = () => {
       return;
     }
 
-    setLoading(true);
-    setMessage({ type: '', text: '' });
-
     try {
       const reader = new FileReader();
       reader.onloadend = async () => {
         try {
           const img = new Image();
           img.onload = async () => {
-            // Aggressively compress image
+            // Compress image
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
-            // Set very small dimensions for profile picture
             const size = 200;
             canvas.width = size;
             canvas.height = size;
             
-            // Calculate center crop
             const sourceSize = Math.min(img.width, img.height);
             const sx = (img.width - sourceSize) / 2;
             const sy = (img.height - sourceSize) / 2;
             
             ctx.drawImage(img, sx, sy, sourceSize, sourceSize, 0, 0, size, size);
             
-            // Heavily compress to JPEG
             const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
-            
-            const { error } = await updateProfile({ image: compressedBase64 });
-            
-            setLoading(false);
-            if (error) {
-              console.error('Upload error:', error);
-              setMessage({ type: 'error', text: 'RLS policy blocking upload. Image feature is being prepared.' });
-            } else {
-              setMessage({ type: 'success', text: 'Profile photo updated!' });
-            }
+            setImagePreview(compressedBase64);
+            setMessage({ type: '', text: '' });
           };
           img.onerror = () => {
-            setLoading(false);
             setMessage({ type: 'error', text: 'Invalid image file' });
           };
           img.src = reader.result;
         } catch (error) {
-          setLoading(false);
           console.error('Compression error:', error);
           setMessage({ type: 'error', text: 'Failed to process image' });
         }
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      setLoading(false);
       console.error('Upload error:', error);
       setMessage({ type: 'error', text: 'Failed to upload image' });
     }
+  };
+
+  const handleImageConfirm = async () => {
+    if (!imagePreview) return;
+
+    setLoading(true);
+    const { error } = await updateProfile({ image: imagePreview });
+    setLoading(false);
+
+    if (error) {
+      console.error('Upload error:', error);
+      setMessage({ type: 'error', text: 'Failed to upload image' });
+    } else {
+      setMessage({ type: 'success', text: 'Profile photo updated!' });
+      setImagePreview(null);
+    }
+  };
+
+  const handleImageCancel = () => {
+    setImagePreview(null);
+    setMessage({ type: '', text: '' });
+    fileInputRef.current.value = '';
   };
 
   const handleLogout = async () => {
@@ -185,7 +191,7 @@ const Profile = () => {
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              onChange={handleImageUpload}
+              onChange={handleImageSelect}
               className="hidden"
             />
           </div>
@@ -213,6 +219,34 @@ const Profile = () => {
             Password
           </button>
         </div>
+
+        {imagePreview && (
+          <div className="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200">
+            <p className="text-body text-blue-600 mb-3 font-medium">Preview your photo:</p>
+            <img 
+              src={imagePreview} 
+              alt="Preview" 
+              className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleImageConfirm}
+                disabled={loading}
+                className="flex-1 py-2 rounded-lg bg-primary text-white text-body font-medium"
+              >
+                {loading ? 'Uploading...' : 'Confirm & Upload'}
+              </button>
+              <button
+                type="button"
+                onClick={handleImageCancel}
+                className="flex-1 py-2 rounded-lg bg-gray-100 text-gray-600 text-body font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         {message.text && (
           <div className={`mb-4 p-3 rounded-lg text-body ${

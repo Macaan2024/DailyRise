@@ -54,7 +54,7 @@ const AddHabitModal = ({ habit, onClose, onSave, onDelete }) => {
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end overflow-hidden">
       <form 
         onSubmit={handleSubmit} 
-        className="bg-white w-full max-h-screen rounded-t-3xl overflow-hidden flex flex-col animate-slide-up"
+        className="bg-white w-full max-h-[85vh] rounded-t-3xl overflow-hidden flex flex-col animate-slide-up"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 flex-shrink-0">

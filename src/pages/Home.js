@@ -5,6 +5,7 @@ import Layout from '../components/Layout';
 import Header from '../components/Header';
 import HabitCard from '../components/HabitCard';
 import AddHabitModal from '../components/AddHabitModal';
+import SelectHabitModal from '../components/SelectHabitModal';
 
 const Home = () => {
   const { user } = useAuth();
@@ -12,6 +13,7 @@ const Home = () => {
   const [todayLogs, setTodayLogs] = useState({});
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showSelectModal, setShowSelectModal] = useState(false);
   const [editHabit, setEditHabit] = useState(null);
 
   const today = new Date().toISOString().split('T')[0];
@@ -242,12 +244,20 @@ const Home = () => {
               </svg>
             </div>
             <p className="text-body text-gray-500 mb-4">No habits yet. Start by adding one!</p>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="btn-primary"
-            >
-              Add Your First Habit
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="btn-primary flex-1"
+              >
+                Create New Habit
+              </button>
+              <button
+                onClick={() => setShowSelectModal(true)}
+                className="flex-1 py-3 rounded-lg bg-gray-100 text-gray-600 text-body font-medium"
+              >
+                Select Habit
+              </button>
+            </div>
           </div>
         ) : (
           <div className="space-y-3">
@@ -276,6 +286,17 @@ const Home = () => {
           }}
           onSave={editHabit ? (data) => handleUpdateHabit(editHabit.id, data) : handleAddHabit}
           onDelete={editHabit ? () => handleDeleteHabit(editHabit.id) : null}
+        />
+      )}
+
+      {showSelectModal && (
+        <SelectHabitModal
+          onClose={() => setShowSelectModal(false)}
+          onSelect={(habit) => {
+            setEditHabit(habit);
+            setShowSelectModal(false);
+            setShowAddModal(true);
+          }}
         />
       )}
     </Layout>
