@@ -127,7 +127,7 @@ const Notifications = () => {
     <Layout>
       <Header title="Reminders" />
       
-      <div className="px-4 py-4">
+      <div className="px-4 py-4 pb-32">
         {notificationPermission !== 'granted' && (
           <div className="card mb-4 bg-yellow-50 border border-yellow-200">
             <div className="flex items-start gap-3">
@@ -226,48 +226,64 @@ const Notifications = () => {
       </div>
 
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-          <div className="bg-white w-full rounded-t-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-heading font-poppins">Add Reminder</h2>
-              <button onClick={() => setShowAddModal(false)} className="text-gray-400">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end overflow-hidden">
+          <div className="bg-white w-full max-h-[85vh] rounded-t-3xl overflow-hidden flex flex-col animate-slide-up">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+              <h2 className="text-heading font-poppins text-dark">Add Reminder</h2>
+              <button 
+                onClick={() => setShowAddModal(false)} 
+                className="p-1 text-gray-400 hover:text-gray-600"
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-body text-gray-600 mb-2">Select Habit</label>
-                <select
-                  value={selectedHabit}
-                  onChange={(e) => setSelectedHabit(e.target.value)}
-                  className="input-field"
-                >
-                  <option value="">Choose a habit</option>
-                  {habits.map((habit) => (
-                    <option key={habit.id} value={habit.id}>{habit.name}</option>
-                  ))}
-                </select>
-              </div>
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-body text-gray-600 mb-3 font-medium">Select Habit</label>
+                  <select
+                    value={selectedHabit}
+                    onChange={(e) => setSelectedHabit(e.target.value)}
+                    className="input-field w-full"
+                  >
+                    <option value="">Choose a habit...</option>
+                    {habits.map((habit) => (
+                      <option key={habit.id} value={habit.id}>{habit.name}</option>
+                    ))}
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-body text-gray-600 mb-2">Reminder Time</label>
-                <input
-                  type="time"
-                  value={reminderTime}
-                  onChange={(e) => setReminderTime(e.target.value)}
-                  className="input-field"
-                />
+                <div>
+                  <label className="block text-body text-gray-600 mb-3 font-medium">Reminder Time</label>
+                  <input
+                    type="time"
+                    value={reminderTime}
+                    onChange={(e) => setReminderTime(e.target.value)}
+                    className="input-field w-full"
+                  />
+                </div>
               </div>
+            </div>
 
+            {/* Fixed Buttons at Bottom */}
+            <div className="flex-shrink-0 bg-white border-t border-gray-100 px-6 py-4 space-y-3 pb-24">
               <button
                 onClick={addReminder}
                 disabled={!selectedHabit}
-                className="btn-primary w-full py-3 mt-4"
+                className="btn-primary w-full py-3 rounded-lg font-medium text-white"
               >
                 Add Reminder
+              </button>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="w-full py-3 rounded-lg bg-gray-100 text-gray-600 text-body font-medium"
+              >
+                Cancel
               </button>
             </div>
           </div>
