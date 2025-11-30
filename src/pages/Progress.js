@@ -207,80 +207,6 @@ const Progress = () => {
         </div>
 
         <div className="card mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-subheading font-poppins">Habits for</h3>
-              <p className="text-body text-gray-500">{getFormattedSelectedDate()}</p>
-            </div>
-            <button
-              onClick={() => {
-                setSelectedDay(new Date().getDate());
-                setCurrentMonth(new Date());
-              }}
-              className="text-small text-primary font-medium hover:bg-primary/10 px-3 py-1 rounded"
-            >
-              Today
-            </button>
-          </div>
-          <div className="space-y-3">
-            {doneHabits.length > 0 && (
-              <div>
-                <p className="text-body text-gray-600 mb-2 font-medium flex items-center">
-                  <span className="w-3 h-3 rounded bg-primary mr-2"></span>
-                  ✓ Done - {doneHabits.length}
-                </p>
-                <div className="space-y-1">
-                  {doneHabits.map(habit => (
-                    <div key={habit.id} className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
-                      <span className="text-lg text-primary">✓</span>
-                      <span className="text-body text-gray-700">{habit.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {missedHabits.length > 0 && (
-              <div>
-                <p className="text-body text-gray-600 mb-2 font-medium flex items-center">
-                  <span className="w-3 h-3 rounded bg-red-400 mr-2"></span>
-                  ✗ Not Done - {missedHabits.length}
-                </p>
-                <div className="space-y-1">
-                  {missedHabits.map(habit => (
-                    <div key={habit.id} className="flex items-center gap-2 p-2 bg-red-50 rounded-lg">
-                      <span className="text-lg text-red-500">✗</span>
-                      <span className="text-body text-gray-700">{habit.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {notLoggedHabits.length > 0 && (
-              <div>
-                <p className="text-body text-gray-600 mb-2 font-medium flex items-center">
-                  <span className="w-3 h-3 rounded bg-gray-300 mr-2"></span>
-                  ○ No Status - {notLoggedHabits.length}
-                </p>
-                <div className="space-y-1">
-                  {notLoggedHabits.map(habit => (
-                    <div key={habit.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                      <span className="text-lg text-gray-400">○</span>
-                      <span className="text-body text-gray-700">{habit.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {doneHabits.length === 0 && missedHabits.length === 0 && notLoggedHabits.length === 0 && (
-              <p className="text-body text-gray-500 text-center py-4">No habits exist yet</p>
-            )}
-          </div>
-        </div>
-
-        <div className="card mb-6">
           <h3 className="text-subheading font-poppins mb-3">Weekly Summary</h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -299,6 +225,64 @@ const Progress = () => {
             </div>
           </div>
         </div>
+
+        {weeklyStats.completed > 0 && (
+          <div className="card mb-6">
+            <h3 className="text-body font-poppins mb-3 text-primary">✓ Completed This Week - {weeklyStats.completed}</h3>
+            <div className="space-y-2">
+              {logs
+                .filter(log => {
+                  const today = new Date();
+                  const startOfWeek = new Date(today);
+                  startOfWeek.setDate(today.getDate() - today.getDay());
+                  const logDate = new Date(log.log_date);
+                  return log.status === 'done' && logDate >= startOfWeek && logDate <= today;
+                })
+                .sort((a, b) => new Date(b.log_date) - new Date(a.log_date))
+                .map((log, idx) => {
+                  const habit = habits.find(h => h.id === log.habit_id);
+                  return (
+                    <div key={`${log.id}-${idx}`} className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
+                      <span className="text-lg text-primary">✓</span>
+                      <div className="flex-1">
+                        <p className="text-body text-gray-700">{habit?.name}</p>
+                        <p className="text-xs text-gray-500">{new Date(log.log_date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
+
+        {weeklyStats.missed > 0 && (
+          <div className="card mb-6">
+            <h3 className="text-body font-poppins mb-3 text-red-500">✗ Missed This Week - {weeklyStats.missed}</h3>
+            <div className="space-y-2">
+              {logs
+                .filter(log => {
+                  const today = new Date();
+                  const startOfWeek = new Date(today);
+                  startOfWeek.setDate(today.getDate() - today.getDay());
+                  const logDate = new Date(log.log_date);
+                  return log.status === 'missed' && logDate >= startOfWeek && logDate <= today;
+                })
+                .sort((a, b) => new Date(b.log_date) - new Date(a.log_date))
+                .map((log, idx) => {
+                  const habit = habits.find(h => h.id === log.habit_id);
+                  return (
+                    <div key={`${log.id}-${idx}`} className="flex items-center gap-2 p-2 bg-red-50 rounded-lg">
+                      <span className="text-lg text-red-500">✗</span>
+                      <div className="flex-1">
+                        <p className="text-body text-gray-700">{habit?.name}</p>
+                        <p className="text-xs text-gray-500">{new Date(log.log_date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
 
         <div className="card mb-6">
           <div className="flex items-center justify-between mb-4">
