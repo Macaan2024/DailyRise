@@ -31,7 +31,7 @@ const Community = () => {
   useEffect(() => {
     if (user) {
       fetchJoinedCommunities();
-      subscribeToReceivedChallenges();
+      fetchPendingChallenges();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -56,46 +56,18 @@ const Community = () => {
     }
   };
 
-  const subscribeToReceivedChallenges = () => {
+  const fetchPendingChallenges = async () => {
     try {
-      console.log('🔔 Subscribing to challenges for user:', user.id);
-      const channel = supabase.channel(`challenges-${user.id}`)
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'challenges',
-          filter: `challengee_id=eq.${user.id}`
-        }, (payload) => {
-          console.log('📨 Challenge INSERT event received:', payload);
-          if (payload.new?.status === 'pending') {
-            console.log('✅ New challenge for me! Adding to pending:', payload.new);
-            setPendingChallenges(prev => [payload.new, ...prev]);
-          }
-        })
-        .on('postgres_changes', {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'challenges',
-          filter: `challengee_id=eq.${user.id}`
-        }, (payload) => {
-          console.log('📨 Challenge UPDATE event received:', payload);
-          if (payload.new.status === 'pending') {
-            setPendingChallenges(prev => {
-              const exists = prev.find(c => c.id === payload.new.id);
-              if (exists) return prev;
-              return [payload.new, ...prev];
-            });
-          } else {
-            setPendingChallenges(prev => prev.filter(c => c.id !== payload.new.id));
-          }
-        })
-        .subscribe((status) => {
-          console.log('🔗 Realtime subscription status:', status);
-        });
-
-      return () => channel.unsubscribe();
+      const { data } = await supabase
+        .from('challenges')
+        .select('*')
+        .eq('challengee_id', user.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+      
+      setPendingChallenges(data || []);
     } catch (error) {
-      console.error('Error subscribing to challenges:', error);
+      console.error('Error fetching pending challenges:', error);
     }
   };
 
@@ -191,6 +163,7 @@ const Community = () => {
   const handleChallengeRespond = () => {
     // Refresh pending challenges after responding
     setSelectedChallengeId(null);
+    fetchPendingChallenges();
   };
 
   return (
@@ -198,14 +171,28 @@ const Community = () => {
       <Header title="Community Accountability" />
       
       <div className="px-4 py-4 pb-32">
-        {/* Show challenge notification badge */}
+        {/* Show challenge notification badge with refresh button */}
         {pendingChallenges.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 flex items-center justify-between">
             <p className="text-small text-yellow-900">
               🎯 You have <span className="font-bold">{pendingChallenges.length}</span> pending challenge{pendingChallenges.length > 1 ? 's' : ''}!
             </p>
+            <button
+              onClick={fetchPendingChallenges}
+              className="text-xs bg-yellow-200 hover:bg-yellow-300 text-yellow-900 px-2 py-1 rounded font-medium transition"
+            >
+              🔄 Refresh
+            </button>
           </div>
         )}
+        
+        {/* Refresh button always visible */}
+        <button
+          onClick={fetchPendingChallenges}
+          className="text-xs mb-3 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded font-medium transition flex items-center gap-1"
+        >
+          🔄 Check for Challenges
+        </button>
 
         {selectedCommunity ? (
           // Show leaderboard for selected community
