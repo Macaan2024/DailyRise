@@ -58,13 +58,16 @@ const Community = () => {
 
   const subscribeToReceivedChallenges = () => {
     try {
+      console.log('🔔 Subscribing to challenges for user:', user.id);
       const channel = supabase.channel(`challenges-${user.id}`)
         .on('postgres_changes', {
           event: 'INSERT',
           schema: 'public',
           table: 'challenges'
         }, (payload) => {
+          console.log('📨 Challenge INSERT event received:', payload);
           if (payload.new?.challenged_user_id === user.id && payload.new.status === 'pending') {
+            console.log('✅ New challenge for me! Adding to pending:', payload.new);
             setPendingChallenges(prev => [payload.new, ...prev]);
           }
         })
@@ -73,6 +76,7 @@ const Community = () => {
           schema: 'public',
           table: 'challenges'
         }, (payload) => {
+          console.log('📨 Challenge UPDATE event received:', payload);
           if (payload.new?.challenged_user_id === user.id) {
             if (payload.new.status === 'pending') {
               setPendingChallenges(prev => {
@@ -85,7 +89,9 @@ const Community = () => {
             }
           }
         })
-        .subscribe();
+        .subscribe((status) => {
+          console.log('🔗 Realtime subscription status:', status);
+        });
 
       return () => channel.unsubscribe();
     } catch (error) {
