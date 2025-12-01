@@ -66,6 +66,16 @@ const BottomNav = () => {
         </svg>
       ),
     },
+    {
+      id: 'community',
+      label: 'Community',
+      path: '/community',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM12 14c-5.373 0-9 2.686-9 6v2h18v-2c0-3.314-3.627-6-9-6z" />
+        </svg>
+      ),
+    },
   ];
 
   return (

@@ -11,6 +11,7 @@ import Logs from './pages/Logs';
 import Notifications from './pages/Notifications';
 import Goals from './pages/Goals';
 import Badges from './pages/Badges';
+import Community from './pages/Community';
 import Profile from './pages/Profile';
 
 const ProtectedRoute = ({ children }) => {
@@ -108,6 +109,12 @@ function App() {
             <Route path="/badges" element={
               <ProtectedRoute>
                 <Badges />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/community" element={
+              <ProtectedRoute>
+                <Community />
               </ProtectedRoute>
             } />
             

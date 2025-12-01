@@ -1,7 +1,7 @@
 # Daily Rise - Habit Tracking Application
 
 ## Overview
-Daily Rise is a mobile-first habit tracking React application that helps users build and maintain daily habits. It features progress tracking, calendar views, weekly summaries, reminders with selectable audio alarms, user profile management, gamified badges, and goal tracking. **Tagline: "Level up your life, every single day"**
+Daily Rise is a mobile-first habit tracking React application that helps users build and maintain daily habits. It features progress tracking, calendar views, weekly summaries, reminders with selectable audio alarms, user profile management, gamified badges that auto-award on habit completion, community groups for accountability, and goal tracking. **Tagline: "Level up your life, every single day"**
 
 ## Tech Stack
 - **Frontend**: React 19.2.0 with Create React App
@@ -29,7 +29,7 @@ Daily Rise is a mobile-first habit tracking React application that helps users b
 src/
 ├── components/              # Reusable UI components
 │   ├── Layout.js            # Main layout with bottom nav
-│   ├── BottomNav.js         # Bottom navigation bar (6 items)
+│   ├── BottomNav.js         # Bottom navigation bar (7 items)
 │   ├── Header.js            # Page header
 │   ├── HabitCard.js         # Habit display card
 │   ├── AddHabitModal.js     # Add/edit habit modal
@@ -49,8 +49,10 @@ src/
 │   ├── Notifications.js     # Reminders management with alarms
 │   ├── Goals.js             # Goal creation & management
 │   ├── Badges.js            # Badge display & achievements
+│   ├── Community.js         # Community groups & accountability
 │   └── Profile.js           # User profile settings
 ├── utils/                   # Utility functions
+│   └── badgeHelper.js       # Badge earning logic
 ├── App.js                   # Main app with routing
 ├── App.css                  # App styles (empty, using Tailwind)
 ├── index.js                 # Entry point
@@ -72,7 +74,7 @@ src/
 2. **Home Dashboard**: 
    - Tagline: "Level up your life, every single day"
    - 3 Unique Features/Highlights:
-     - 🏆 **Gamified Progress**: Earn badges & rewards as you complete habits (shows earned badge count)
+     - 🏆 **Gamified Progress**: Auto-earn badges as you complete habits (shows earned badge count)
      - ⚡ **Set & Achieve Goals**: Connect habits with personal goals (shows goal count)
      - 📊 **Smart Insights**: Detailed analytics & trends with calendar view
    - Daily habit list with progress tracking, create new or select existing habits
@@ -95,26 +97,39 @@ src/
    - Create goals with title, target date, and linked habit
    - Mark goals as achieved/pending
    - Delete goals with confirmation
+   - Date validation: Only today or future dates allowed
    - Full CRUD operations with SweetAlert notifications
-7. **Badges**: 
+7. **Badges** (Gamified): 
+   - Auto-award badges on habit completion:
+     - First Step: 1 completed habit
+     - Week Warrior: 7+ habits completed in 7 days
+     - 30 Day Master: 20+ habits completed in 30 days
+     - Consistency Champion: 50+ total completed habits
    - Display all available badges
    - Show earned badges with dates
    - Progress counter (X badges earned out of total)
    - Beautiful badge icons and styling
-8. **Profile**: 
+8. **Community** (Accountability): 
+   - Create community groups/challenges
+   - Join other communities
+   - Leave communities
+   - View all available communities
+   - Share progress with friends in communities
+9. **Profile**: 
    - Image upload up to 2MB with preview confirmation
    - Account settings with SweetAlert validation
    - Password change with smart alerts
    - Solid red logout button
    - Only shows success alert if data actually changed
 
-## Bottom Navigation (6 Items)
+## Bottom Navigation (7 Items)
 1. Home - Dashboard with unique features and habit tracking
 2. Progress - Calendar view and analytics
 3. Logs - Habit history
 4. Alerts - Reminders with alarm sounds
-5. Goals - Goal management (clickable from feature highlight)
-6. Badges - Achievement badges (clickable from feature highlight)
+5. Goals - Goal management with date validation
+6. Badges - Achievement badges (auto-earned on habit completion)
+7. Community - Groups & accountability challenges
 
 ## Alarm Sounds
 - 🔔 Classic Beep: 800Hz tone
@@ -132,11 +147,7 @@ src/
 
 ## RLS Policies (Supabase)
 Simplified row-level security policies to work with custom authentication:
-- Users table: Allow INSERT for registration, SELECT for all, UPDATE for profile changes
-- Habits table: Allow CRUD operations (simplified for custom auth)
-- Habit_logs table: Allow CRUD operations (simplified for custom auth)
-- Goals table: Allow CRUD operations (simplified for custom auth)
-- User_badges table: Allow SELECT and INSERT for custom auth
+- All tables: Allow INSERT, SELECT, UPDATE, DELETE with `WITH CHECK (true)` for custom auth
 
 ## Development
 The "React App" workflow runs `npm start` on port 5000.
@@ -147,21 +158,21 @@ The "React App" workflow runs `npm start` on port 5000.
 - Output: `build/`
 
 ## Recent Changes
-- **2025-12-01 Dashboard Enhancement**: 
-  - Transferred Goals and Badges to Home dashboard
-  - Added 3 unique feature highlights on dashboard:
-    1. Gamified Progress (with badge count)
-    2. Set & Achieve Goals (with goal count)
-    3. Smart Insights (with analytics link)
-  - Added tagline: "Level up your life, every single day"
-  - Feature highlights are clickable cards that navigate to Goals, Badges, and Progress pages
-  - Restored full 6-item bottom navigation (Home, Progress, Logs, Alerts, Goals, Badges)
-  - Dashboard shows realtime counts of user's badges earned and goals created
+- **2025-12-01 Gamified & Community Features**: 
+  - Implemented auto-badge earning system on habit completion
+  - Created badge helper utility for automated badge awards
+  - Added Community page for accountability groups
+  - Users can create and join community challenges
+  - Fixed goals date validation (must be today or future)
+  - Fixed goals no longer auto-check after insert
+  - Expanded bottom navigation to 7 items
+  - Enable button in Alerts now properly clickable
 
 ## Known Issues & Limitations
 - RLS policies use simplified settings (USING true) due to custom authentication limitations
 - Web Audio API requires browser to have audio output available
 - Reminders use localStorage instead of database for local storage on device
+- Bottom navigation with 7 items may need horizontal scrolling on very small screens
 
 ## Completed Features ✅
 - ✅ Full user authentication system
@@ -177,22 +188,28 @@ The "React App" workflow runs `npm start` on port 5000.
 - ✅ Mobile responsive design
 - ✅ Desktop & mobile support
 - ✅ Goals system with CRUD operations
-- ✅ Badges system with achievement tracking
+- ✅ Goals date validation (today or future only)
+- ✅ Badges system with auto-earning on habit completion
 - ✅ Dashboard with 3 unique feature highlights
-- ✅ Bottom navigation with 6 items
+- ✅ Bottom navigation with 7 items
+- ✅ Community groups and accountability features
+- ✅ Gamified progress tracking (auto-badges)
+- ✅ Clickable Enable button in Alerts
 
 ## DailyRise Unique Value Proposition
 **What makes us different from other habit trackers:**
 
 1. **Gamified Progress Tracking** 🏆
-   - Users earn badges and rewards as they complete habits
+   - Users auto-earn badges and rewards as they complete habits
    - Makes consistency fun and motivating
    - Visual reward system keeps users engaged
+   - Automatic achievement recognition
 
-2. **Community Accountability** (Future)
+2. **Community Accountability** 👥
    - Join groups or challenges with friends
    - Share progress and encourage each other
-   - Build habits together
+   - Build habits together in supportive communities
+   - Foster social motivation and engagement
 
 3. **Smart Insights Dashboard** 📊
    - Detailed visual analytics and trends

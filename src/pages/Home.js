@@ -7,6 +7,7 @@ import Header from '../components/Header';
 import HabitCard from '../components/HabitCard';
 import AddHabitModal from '../components/AddHabitModal';
 import SelectHabitModal from '../components/SelectHabitModal';
+import { checkAndAwardBadges } from '../utils/badgeHelper';
 
 const Home = () => {
   const { user } = useAuth();
@@ -126,6 +127,12 @@ const Home = () => {
 
         if (error) throw error;
         setTodayLogs({ ...todayLogs, [habitId]: data });
+        
+        // Check and award badges after marking habit as done
+        if (newStatus === 'done') {
+          checkAndAwardBadges(user.id);
+          setTimeout(() => fetchGoalsAndBadges(), 500);
+        }
       }
     } catch (error) {
       console.error('Error toggling habit:', error);
