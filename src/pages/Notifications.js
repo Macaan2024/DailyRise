@@ -158,14 +158,21 @@ const Notifications = () => {
       const currentPoints = parseInt(localStorage.getItem(`user_points_${user.id}`) || '0');
       const newPoints = currentPoints + 10;
       localStorage.setItem(`user_points_${user.id}`, newPoints.toString());
+      // Dispatch storage event for real-time updates in Rewards page
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: `user_points_${user.id}`,
+        newValue: newPoints.toString(),
+      }));
     }
     
+    // Stop alarm sound and modal
     setIsAlarmRinging(false);
-    setCurrentAlarmReminder(null);
     if (alarmIntervalId) {
       clearInterval(alarmIntervalId);
       setAlarmIntervalId(null);
     }
+    // Reset reminder state after clearing modal
+    setTimeout(() => setCurrentAlarmReminder(null), 100);
   };
 
   useEffect(() => {
@@ -202,15 +209,17 @@ const Notifications = () => {
       setIsAlarmRinging(true);
       setAlarmCountdown(60);
       
-      // Play alarm continuously during countdown
+      // Play alarm continuously during countdown - loop every 1.5 seconds for constant sound
       const playAlarmContinuously = () => {
-        for (let i = 0; i < 6; i++) {
-          setTimeout(() => playAlarmSound(alarmType, 0.5), i * 600);
+        // Play 3 rapid beeps (total ~1.5s)
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => playAlarmSound(alarmType, 0.4), i * 500);
         }
       };
       
+      // Start immediately and repeat every 1.5 seconds
       playAlarmContinuously();
-      const alarmInterval = setInterval(playAlarmContinuously, 3600);
+      const alarmInterval = setInterval(playAlarmContinuously, 1500);
       setAlarmIntervalId(alarmInterval);
       
       if (notificationPermission === 'granted' && 'Notification' in window) {

@@ -15,10 +15,14 @@ const Rewards = () => {
   useEffect(() => {
     if (user) {
       fetchData();
-      const savedPoints = localStorage.getItem(`user_points_${user.id}`);
-      if (savedPoints) {
-        setUserPoints(parseInt(savedPoints));
-      }
+      // Listen for storage changes to update points in real-time
+      const handleStorageChange = (e) => {
+        if (e.key === `user_points_${user.id}` && e.newValue) {
+          setUserPoints(parseInt(e.newValue));
+        }
+      };
+      window.addEventListener('storage', handleStorageChange);
+      return () => window.removeEventListener('storage', handleStorageChange);
     }
   }, [user]);
 
@@ -31,17 +35,9 @@ const Rewards = () => {
 
       setHabits(habitsData || []);
 
-      const { data: allLogs } = await supabase
-        .from('habit_logs')
-        .select('*')
-        .eq('status', 'done');
-
-      const userCompletedLogs = allLogs?.filter(log => {
-        const habit = habitsData?.find(h => h.id === log.habit_id);
-        return habit?.user_id === user.id;
-      }) || [];
-
-      setUserPoints(userCompletedLogs.length * 10);
+      // Get points from localStorage (earned via reminders)
+      const savedPoints = localStorage.getItem(`user_points_${user.id}`);
+      setUserPoints(savedPoints ? parseInt(savedPoints) : 0);
 
       const claimed = localStorage.getItem(`rewards_${user.id}`);
       setClaimedRewards(claimed ? JSON.parse(claimed) : []);
