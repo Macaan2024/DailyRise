@@ -25,7 +25,7 @@ const ChallengeReceivedModal = ({ isOpen, challengeId, onClose, onRespond }) => 
           habit_id,
           community_id,
           habits:habit_id (name),
-          challenger:challenger_id (firstname, lastname, image)
+          challenger:challenger_id (firstname, lastname, image, age, gender)
         `)
         .eq('id', challengeId)
         .single();
@@ -110,43 +110,74 @@ const ChallengeReceivedModal = ({ isOpen, challengeId, onClose, onRespond }) => 
 
   const challengerName = `${challenge.challenger?.firstname} ${challenge.challenger?.lastname}`;
   const habitName = challenge.habits?.name || 'Unknown Habit';
+  const userAge = challenge.challenger?.age || 'N/A';
+  const userGender = challenge.challenger?.gender || 'N/A';
+  const userImage = challenge.challenger?.image;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
-        <h3 className="text-lg font-semibold text-dark mb-2">🎯 New Challenge!</h3>
+      <div className="bg-white rounded-2xl max-w-sm w-full overflow-hidden">
+        {/* Header Background */}
+        <div className="bg-gradient-to-r from-primary to-primary/80 h-24"></div>
         
-        <div className="mb-4">
-          <p className="text-body text-dark">
-            <span className="font-semibold">{challengerName}</span> challenged you to complete:
-          </p>
-          <p className="text-lg font-bold text-primary mt-2 mb-3">"{habitName}"</p>
-          <p className="text-small text-gray-600">
-            Complete this habit to earn <span className="font-bold text-primary">25 points</span>!
-          </p>
-        </div>
+        {/* Profile Card */}
+        <div className="px-6 pb-6 -mt-12 relative">
+          {/* Profile Image */}
+          <div className="flex justify-center mb-4">
+            <img
+              src={userImage || 'https://via.placeholder.com/100?text=User'}
+              alt={challengerName}
+              className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
+            />
+          </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-          <p className="text-small text-blue-900">
-            ✨ Completing challenges helps you earn points and build accountability in your community.
-          </p>
-        </div>
+          {/* User Info */}
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-bold text-dark">{challengerName}</h3>
+            <div className="flex justify-center gap-4 mt-2">
+              <p className="text-small text-gray-600">
+                <span className="font-semibold">Age:</span> {userAge}
+              </p>
+              <p className="text-small text-gray-600">
+                <span className="font-semibold">Gender:</span> {userGender}
+              </p>
+            </div>
+          </div>
 
-        <div className="flex gap-3">
-          <button
-            onClick={handleDecline}
-            disabled={responding}
-            className="flex-1 px-4 py-2 bg-gray-200 text-dark rounded font-medium text-small hover:bg-gray-300 disabled:opacity-50"
-          >
-            {responding ? 'Processing...' : 'Decline'}
-          </button>
-          <button
-            onClick={handleAccept}
-            disabled={responding}
-            className="flex-1 px-4 py-2 bg-primary text-white rounded font-medium text-small hover:bg-primary/90 disabled:opacity-50"
-          >
-            {responding ? 'Processing...' : 'Accept'}
-          </button>
+          {/* Challenge Details */}
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-4 mb-4">
+            <p className="text-small text-blue-900 mb-2">
+              🎯 <span className="font-semibold">{challengerName}</span> challenged you to:
+            </p>
+            <p className="text-base font-bold text-primary text-center">
+              "{habitName}"
+            </p>
+          </div>
+
+          {/* Reward Info */}
+          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-3 mb-5">
+            <p className="text-small text-yellow-900 text-center">
+              ✨ Complete this habit to earn <span className="font-bold text-yellow-700">25 Points</span>!
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={handleDecline}
+              disabled={responding}
+              className="flex-1 px-4 py-2 bg-gray-100 text-dark rounded-lg font-medium text-small hover:bg-gray-200 disabled:opacity-50 transition"
+            >
+              {responding ? 'Processing...' : '👋 Decline'}
+            </button>
+            <button
+              onClick={handleAccept}
+              disabled={responding}
+              className="flex-1 px-4 py-2 bg-primary text-white rounded-lg font-medium text-small hover:bg-primary/90 disabled:opacity-50 transition shadow-md"
+            >
+              {responding ? 'Processing...' : '✨ Accept'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

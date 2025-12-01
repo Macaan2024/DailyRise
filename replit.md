@@ -133,12 +133,16 @@ src/
      - Select one of your habits to challenge them with
      - **Receive Challenge Notifications**:
        - Notification badge shows pending challenge count
-       - Challenge modal appears with challenger name and habit
-       - Display reward information (25 points)
+       - Beautiful profile card modal appears with:
+         - Challenger's profile image (large rounded photo)
+         - Full name, age, and gender
+         - Challenge habit name in gradient card
+         - Reward information (25 points) in yellow gradient
+       - Poll system checks for new challenges every 5 seconds
      - **Accept or Decline**: 
        - Accept to earn 25 points upon habit completion
        - Decline to reject the challenge
-       - Poll system checks for new challenges every 5 seconds
+       - Visual feedback with emojis (👋 Decline, ✨ Accept)
      - Track all pending and completed challenges in database
    - Leave communities anytime
    - View all available communities
