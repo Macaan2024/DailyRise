@@ -185,18 +185,15 @@ The "React App" workflow runs `npm start` on port 5000.
 - Output: `build/`
 
 ## Recent Changes
-- **2025-12-01 Community System Complete**:
-  - Created `community`, `community_members`, `challenges`, and `habits` database tables
-  - Added leaderboard showing points ranking of users in same community
-  - Implemented challenge system - users can challenge others to complete specific habits
-  - Community members can see each other's points and compete
-  - Challenge modal allows selecting any of user's habits to send as challenge
-  - 5 pre-built communities auto-populated: Fitness Warriors, Meditation Masters, Reading Circle, Productivity Pros, Health Champions
-  - **Fixed**: Changed "Create First Community" button to "Join Community" 
-  - **Fixed**: Removed community creation modal - users join pre-built communities
-  - **Fixed**: Refresh button to reload communities if needed
+- **2025-12-01 Complete Community System with Friends & Challenges**:
+  - Created `community`, `community_members`, `challenges`, `habits`, and `friends` database tables
+  - **Community Dropdown Selector**: Users select any community from dropdown to view members
+  - **Member Leaderboard**: See all users in selected community ranked by points
+  - **Challenge System**: Send habit challenges to any community member with modal selector
+  - **Friend System**: Add other users as friends (pending/accepted status)
+  - 5 pre-built communities: Fitness Warriors, Meditation Masters, Reading Circle, Productivity Pros, Health Champions
   - Real-time points synchronization across all pages
-  - All database tables synced with proper constraints
+  - All database tables synced with proper constraints and foreign keys
 
 ## Known Issues & Limitations
 - RLS policies use simplified settings (USING true) due to custom authentication limitations
