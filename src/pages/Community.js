@@ -37,13 +37,18 @@ const Community = () => {
 
   const joinCommunity = async (communityId) => {
     try {
-      const { data, error } = await supabase.rpc('join_community', {
-        p_community_id: communityId,
-        p_user_id: user.id
-      });
+      const { error } = await supabase
+        .from('community_members')
+        .insert([{
+          community_id: communityId,
+          user_id: user.id,
+          role: 'member'
+        }]);
 
-      if (error) throw error;
-      if (data?.success === false) throw new Error(data?.error || 'Failed to join');
+      if (error) {
+        console.error('Supabase error details:', error);
+        throw error;
+      }
 
       setJoinedCommunities([...joinedCommunities, communityId]);
 
@@ -56,6 +61,8 @@ const Community = () => {
       });
     } catch (error) {
       console.error('Join error:', error);
+      console.error('Error code:', error?.code);
+      console.error('Error message:', error?.message);
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -67,13 +74,13 @@ const Community = () => {
 
   const leaveCommunity = async (communityId) => {
     try {
-      const { data, error } = await supabase.rpc('leave_community', {
-        p_community_id: communityId,
-        p_user_id: user.id
-      });
+      const { error } = await supabase
+        .from('community_members')
+        .delete()
+        .eq('community_id', communityId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
-      if (data?.success === false) throw new Error(data?.error || 'Failed to leave');
 
       setJoinedCommunities(joinedCommunities.filter(id => id !== communityId));
 
@@ -85,6 +92,7 @@ const Community = () => {
         confirmButtonColor: '#043915',
       });
     } catch (error) {
+      console.error('Leave error:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
