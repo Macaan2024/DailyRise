@@ -1,0 +1,99 @@
+The Netlify deploy errored, with the following guidance provided:
+
+- Relevant log lines
+  - [line 10](#L10) shows Node: v22.21.1 in the build environment.
+  - [line 73](#L73) the build command starts: npm run build.
+  - [line 76](#L76) the build runs react-scripts: Creating an optimized production build...
+  - [line 77](#L77) build failed: Build script returned non-zero exit code: 2
+
+Diagnosis
+- Error type: build step failed during the Create React App production build (react-scripts build).
+- Likely cause: an incompatible Node.js version (Node 22) in the Netlify build environment. Create React App / react-scripts and some of its dependencies commonly require a current LTS Node (e.g., Node 18 or 20) and may break on newer Node majors. The logs show the build aborted immediately after react-scripts began, which is consistent with a Node compatibility issue.
+
+Solution
+1. Pin a supported Node version for Netlify (recommended: Node 18 or 20 LTS).
+   - Add an .nvmrc at the repo root (recommended) — commit and push it:
+```text
+# .nvmrc
+18
+```
+   - OR add engines to package.json:
+```json
+{
+  "engines": {
+    "node": "18.x"
+  }
+}
+```
+   - OR set Netlify build environment in netlify.toml:
+```toml
+[build.environment]
+  NODE_VERSION = "18.20.0"
+```
+   Commit and push whichever file you add.
+
+2. Rebuild locally to verify:
+   - Install/use the pinned Node: nvm install 18 && nvm use 18
+   - Reinstall deps and run build: npm ci && npm run build
+   - Fix any build errors that appear locally before redeploying.
+
+3. Redeploy on Netlify. Netlify will pick up .nvmrc or package.json engines (or the NODE_VERSION env var) and use that Node version for the build.
+
+References
+- Netlify docs — changing Node versions: https://docs.netlify.com/configure-builds/manage-dependencies/#node-js-and-javascript
+
+Notes
+- If after pinning Node the build still fails, run the local build under the same Node version and paste the full error output — that will reveal the exact failing file or dependency to diagnose further.
+
+The relevant error logs are:
+
+Line 0: build-image version: cc7730f6f332688234781c0852e824dedc2337ca (noble)
+Line 1: buildbot version: cc7730f6f332688234781c0852e824dedc2337ca
+Line 2: Fetching cached dependencies
+Line 3: Failed to fetch cache, continuing with build
+Line 4: Fetching build zip file
+Line 5: Starting to prepare the repo for build
+Line 6: Custom publish path detected. Proceeding with the specified path: 'build'
+Line 7: Custom build command detected. Proceeding with the specified command: 'npm run build'
+Line 8: Starting to install dependencies
+Line 9: v22.21.1 is already installed.
+Line 10: Now using node v22.21.1 (npm v10.9.4)
+Line 11: Enabling Node.js Corepack
+Line 12: Started restoring cached build plugins
+Line 13: Finished restoring cached build plugins
+Line 21: npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+Line 22: npm warn deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+npm warn deprecated glob@7.2.3: Glo
+Line 23: npm warn deprecated w3c-hr-time@1.0.2: Use your platform's native performance.now() and performance.timeOrigin.
+npm warn depreca
+Line 24: npm warn deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
+Line 25: npm warn deprecated rollup-plugin-terser@7.0.2: This package has been deprecated and is no longer maintained. Please use @rollup
+Line 26: npm warn deprecated q@1.5.1: You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript develo
+Line 27: npm warn deprecated
+Line 28: npm warn deprecated (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
+Line 29: npm warn deprecated workbox-cacheable-response@6.6.0: workbox-background-sync@6.6.0
+Line 30: npm warn deprecated workbox-google-analytics@6.6.0: It is not compatible with newer versions of GA starting with v4, as long as 
+Line 31: npm warn deprecated domexception@2.0.1: Use your platform's native DOMException instead
+npm warn deprecated @humanwhocodes/objec
+Line 32: npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+Line 33: npm warn deprecated svgo@1.3.2: This SVGO version is no longer supported. Upgrade to v2.x.x.
+Line 34: npm warn deprecated @babel/plugin-proposal-private-methods@7.18.6: This proposal has been merged to the ECMAScript standard and 
+Line 35: npm warn deprecated @babel/plugin-proposal-optional-chaining@7.21.0: This proposal has been merged to the ECMAScript standard an
+Line 36: npm warn deprecated @babel/plugin-proposal-numeric-separator@7.18.6: This proposal has been merged to the ECMAScript standard an
+Line 37: npm warn deprecated @babel/plugin-proposal-nullish-coalescing-operator@7.18.6: This proposal has been merged to the ECMAScript s
+Line 38: npm warn deprecated @babel/plugin-proposal-class-properties@7.18.6: This proposal has been merged to the ECMAScript standard and
+Line 39: npm warn deprecated @babel/plugin-proposal-private-property-in-object@7.21.11: This proposal has been merged to the ECMAScript s
+Line 40: npm warn deprecated source-map@0.8.0-beta.0: The work that was done in this beta branch won't be included in future versions
+npm
+Line 41: added 1335 packages in 7s
+Line 67: [36m[1m❯ Context[22m[39m
+Line 68:   production
+Line 69: [96m[1m​[22m[39m
+Line 70: [96m[1mbuild.command from netlify.toml                               [22m[39m
+Line 71: [96m[1m────────────────────────────────────────────────────────────────[22m[39m
+Line 72: ​
+Line 73: [36m$ npm run build[39m
+Line 74: > dailyrise@0.1.0 build
+Line 75: > react-scripts build
+Line 76: Creating an optimized production build...
+Line 77: Failed during stage 'building site': Build script returned non-zero exit code: 2
