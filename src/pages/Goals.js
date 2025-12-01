@@ -12,6 +12,7 @@ const Goals = () => {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [formData, setFormData] = useState({ title: '', target_date: '', habit_id: '' });
+  const [editingGoal, setEditingGoal] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -67,38 +68,79 @@ const Goals = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('goals')
-        .insert([{
+      if (editingGoal) {
+        // Update existing goal
+        const { error } = await supabase
+          .from('goals')
+          .update({
+            title: formData.title,
+            target_date: formData.target_date,
+            habit_id: parseInt(formData.habit_id),
+          })
+          .eq('id', editingGoal.id);
+
+        if (error) throw error;
+
+        setGoals(goals.map(g => g.id === editingGoal.id ? {
+          ...g,
           title: formData.title,
           target_date: formData.target_date,
           habit_id: parseInt(formData.habit_id),
-          user_id: user.id,
-          is_achieve: false,
-        }])
-        .select();
+        } : g));
 
-      if (error) throw error;
+        Swal.fire({
+          icon: 'success',
+          title: 'Updated',
+          text: 'Goal updated successfully!',
+          confirmButtonColor: '#043915',
+        });
+      } else {
+        // Create new goal
+        const { data, error } = await supabase
+          .from('goals')
+          .insert([{
+            title: formData.title,
+            target_date: formData.target_date,
+            habit_id: parseInt(formData.habit_id),
+            user_id: user.id,
+            is_achieve: false,
+          }])
+          .select();
 
-      setGoals([...goals, data[0]]);
+        if (error) throw error;
+
+        setGoals([...goals, data[0]]);
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Goal created successfully!',
+          confirmButtonColor: '#043915',
+        });
+      }
+
       setFormData({ title: '', target_date: '', habit_id: '' });
+      setEditingGoal(null);
       setShowAddModal(false);
-      
-      Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: 'Goal created successfully!',
-        confirmButtonColor: '#043915',
-      });
     } catch (error) {
-      console.error('Add goal error:', error);
+      console.error('Add/update goal error:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: error.message || 'Failed to create goal',
+        text: error.message || 'Failed to save goal',
         confirmButtonColor: '#043915',
       });
     }
+  };
+
+  const startEditGoal = (goal) => {
+    setEditingGoal(goal);
+    setFormData({
+      title: goal.title,
+      target_date: goal.target_date,
+      habit_id: goal.habit_id,
+    });
+    setShowAddModal(true);
   };
 
   const toggleGoal = async (goalId, currentStatus) => {
@@ -239,14 +281,24 @@ const Goals = () => {
                     <p className="text-body text-gray-500 mt-1">{getHabitName(goal.habit_id)}</p>
                     <p className="text-xs text-gray-400 mt-1">Target: {formatDate(goal.target_date)}</p>
                   </div>
-                  <button
-                    onClick={() => deleteGoal(goal.id)}
-                    className="p-2 text-gray-400 hover:text-red-500"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => startEditGoal(goal)}
+                      className="p-2 text-gray-400 hover:text-primary"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => deleteGoal(goal.id)}
+                      className="p-2 text-gray-400 hover:text-red-500"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -258,9 +310,13 @@ const Goals = () => {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end overflow-hidden">
           <div className="bg-white w-full max-h-[85vh] rounded-t-3xl overflow-hidden flex flex-col animate-slide-up">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
-              <h2 className="text-heading font-poppins text-dark">Add Goal</h2>
+              <h2 className="text-heading font-poppins text-dark">{editingGoal ? 'Edit Goal' : 'Add Goal'}</h2>
               <button 
-                onClick={() => setShowAddModal(false)} 
+                onClick={() => {
+                  setShowAddModal(false);
+                  setEditingGoal(null);
+                  setFormData({ title: '', target_date: '', habit_id: '' });
+                }}
                 className="p-1 text-gray-400 hover:text-gray-600"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

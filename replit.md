@@ -96,6 +96,7 @@ src/
 6. **Goals**: 
    - Create goals with title, target date, and linked habit
    - Mark goals as achieved/pending
+   - **Edit goals** - Change title, target date, and habit connection
    - Delete goals with confirmation
    - Date validation: Only today or future dates allowed
    - Full CRUD operations with SweetAlert notifications
@@ -122,14 +123,16 @@ src/
    - Solid red logout button
    - Only shows success alert if data actually changed
 
-## Bottom Navigation (7 Items)
-1. Home - Dashboard with unique features and habit tracking
+## Bottom Navigation (4 Items)
+1. Home - Dashboard with 3 feature highlights and habit tracking
 2. Progress - Calendar view and analytics
 3. Logs - Habit history
 4. Alerts - Reminders with alarm sounds
-5. Goals - Goal management with date validation
-6. Badges - Achievement badges (auto-earned on habit completion)
-7. Community - Groups & accountability challenges
+
+## Feature Highlights on Homepage (Clickable Links to)
+- 🏆 Gamified Progress → Links to Badges page
+- ⚡ Set & Achieve Goals → Links to Goals page
+- 📊 Smart Insights → Links to Progress page
 
 ## Alarm Sounds
 - 🔔 Classic Beep: 800Hz tone
@@ -158,15 +161,12 @@ The "React App" workflow runs `npm start` on port 5000.
 - Output: `build/`
 
 ## Recent Changes
-- **2025-12-01 Gamified & Community Features**: 
-  - Implemented auto-badge earning system on habit completion
-  - Created badge helper utility for automated badge awards
-  - Added Community page for accountability groups
-  - Users can create and join community challenges
-  - Fixed goals date validation (must be today or future)
-  - Fixed goals no longer auto-check after insert
-  - Expanded bottom navigation to 7 items
-  - Enable button in Alerts now properly clickable
+- **2025-12-01 Final UI Polish**: 
+  - Added edit button to Goals page (change goal details anytime)
+  - Reduced bottom navigation to 4 core items (Home, Progress, Logs, Alerts)
+  - Moved Goals, Badges, Community to homepage feature cards (still accessible via clickable cards)
+  - Homepage now displays 3 unique features as entry points to advanced features
+  - Cleaner navigation with focus on core habit tracking workflow
 
 ## Known Issues & Limitations
 - RLS policies use simplified settings (USING true) due to custom authentication limitations
