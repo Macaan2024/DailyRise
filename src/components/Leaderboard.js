@@ -7,12 +7,21 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
   const { user } = useAuth();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { sentChallenges } = useChallenges(user?.id, communityId);
+  const [sentChallenges, setSentChallenges] = useState({});
+  const { sentChallenges: hookChallenges } = useChallenges(user?.id, communityId);
 
   useEffect(() => {
-    if (communityId) {
+    setSentChallenges(hookChallenges);
+  }, [hookChallenges]);
+
+  useEffect(() => {
+    if (communityId && user?.id) {
       fetchLeaderboard();
+      fetchSentChallenges();
       
+      // Auto-refresh sent challenges every 2 seconds
+      const interval = setInterval(fetchSentChallenges, 2000);
+
       // Subscribe to real-time leaderboard updates
       const channel = supabase.channel(`leaderboard-${communityId}`)
         .on('postgres_changes', {
@@ -26,9 +35,12 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
         })
         .subscribe();
 
-      return () => channel.unsubscribe();
+      return () => {
+        clearInterval(interval);
+        channel.unsubscribe();
+      };
     }
-  }, [communityId]);
+  }, [communityId, user?.id]);
 
   const fetchLeaderboard = async () => {
     try {
@@ -44,6 +56,24 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
       console.error('Error fetching leaderboard:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSentChallenges = async () => {
+    try {
+      const { data } = await supabase
+        .from('challenges')
+        .select('challenged_user_id, status')
+        .eq('challenger_id', user?.id)
+        .neq('status', 'declined');
+
+      const map = {};
+      data?.forEach(c => {
+        map[c.challenged_user_id] = c.status;
+      });
+      setSentChallenges(map);
+    } catch (error) {
+      console.error('Error fetching sent challenges:', error);
     }
   };
 
