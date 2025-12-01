@@ -6,6 +6,8 @@ import Header from '../components/Header';
 import Leaderboard from '../components/Leaderboard';
 import ChallengeModal from '../components/ChallengeModal';
 import ChallengeReceivedModal from '../components/ChallengeReceivedModal';
+import ViewChallengeModal from '../components/ViewChallengeModal';
+import { useChallenges } from '../hooks/useChallenges';
 import Swal from 'sweetalert2';
 
 const Community = () => {
@@ -24,18 +26,25 @@ const Community = () => {
   const [pendingChallenges, setPendingChallenges] = useState([]);
   const [showChallengeReceivedModal, setShowChallengeReceivedModal] = useState(false);
   const [selectedChallengeId, setSelectedChallengeId] = useState(null);
+  const [showViewChallengeModal, setShowViewChallengeModal] = useState(false);
+  const [viewChallengeId, setViewChallengeId] = useState(null);
+  const { receivedChallenges, setReceivedChallenges } = useChallenges(user?.id, selectedCommunity);
 
   useEffect(() => {
     if (user) {
       fetchJoinedCommunities();
-      fetchPendingChallenges();
-      
-      // Poll for new challenges every 5 seconds
-      const interval = setInterval(fetchPendingChallenges, 5000);
-      return () => clearInterval(interval);
+      subscribeToReceivedChallenges();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  useEffect(() => {
+    // Auto-show first pending challenge modal if any exist
+    if (pendingChallenges.length > 0 && !selectedChallengeId && !showChallengeReceivedModal) {
+      setSelectedChallengeId(pendingChallenges[0].id);
+      setShowChallengeReceivedModal(true);
+    }
+  }, [pendingChallenges, selectedChallengeId, showChallengeReceivedModal]);
 
   const fetchJoinedCommunities = async () => {
     try {
@@ -49,24 +58,33 @@ const Community = () => {
     }
   };
 
-  const fetchPendingChallenges = async () => {
+  const subscribeToReceivedChallenges = () => {
     try {
-      const { data } = await supabase
+      const subscription = supabase
         .from('challenges')
-        .select('*')
-        .eq('challenged_user_id', user.id)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
-      
-      setPendingChallenges(data || []);
-      
-      // Auto-show first pending challenge modal if any exist
-      if (data && data.length > 0 && !selectedChallengeId) {
-        setSelectedChallengeId(data[0].id);
-        setShowChallengeReceivedModal(true);
-      }
+        .on('INSERT', (payload) => {
+          if (payload.new?.challenged_user_id === user.id && payload.new.status === 'pending') {
+            setPendingChallenges(prev => [payload.new, ...prev]);
+          }
+        })
+        .on('UPDATE', (payload) => {
+          if (payload.new?.challenged_user_id === user.id) {
+            if (payload.new.status === 'pending') {
+              setPendingChallenges(prev => {
+                const exists = prev.find(c => c.id === payload.new.id);
+                if (exists) return prev;
+                return [payload.new, ...prev];
+              });
+            } else {
+              setPendingChallenges(prev => prev.filter(c => c.id !== payload.new.id));
+            }
+          }
+        })
+        .subscribe();
+
+      return () => subscription.unsubscribe();
     } catch (error) {
-      console.error('Error fetching pending challenges:', error);
+      console.error('Error subscribing to challenges:', error);
     }
   };
 
@@ -140,9 +158,24 @@ const Community = () => {
     setShowChallengeModal(true);
   };
 
+  const handleViewChallenge = (userId) => {
+    // Find the completed/accepted challenge for this user
+    const { data: challenges } = supabase
+      .from('challenges')
+      .select('id')
+      .eq('challenger_id', user.id)
+      .eq('challenged_user_id', userId)
+      .eq('status', 'completed')
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setViewChallengeId(data[0].id);
+          setShowViewChallengeModal(true);
+        }
+      });
+  };
+
   const handleChallengeRespond = () => {
     // Refresh pending challenges after responding
-    fetchPendingChallenges();
     setSelectedChallengeId(null);
   };
 

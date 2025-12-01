@@ -1,16 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import Swal from 'sweetalert2';
+import { useChallenges } from '../hooks/useChallenges';
 
-const Leaderboard = ({ communityId, onChallenge }) => {
+const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
   const { user } = useAuth();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { sentChallenges } = useChallenges(user?.id, communityId);
 
   useEffect(() => {
     if (communityId) {
       fetchLeaderboard();
+      
+      // Subscribe to real-time leaderboard updates
+      const subscription = supabase
+        .from('community_leaderboard')
+        .on('*', (payload) => {
+          if (payload.new?.community_id === communityId) {
+            fetchLeaderboard();
+          }
+        })
+        .subscribe();
+
+      return () => subscription.unsubscribe();
     }
   }, [communityId]);
 
@@ -29,6 +42,40 @@ const Leaderboard = ({ communityId, onChallenge }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getButtonState = (memberId) => {
+    const status = sentChallenges[memberId];
+    if (status === 'pending') return 'pending';
+    if (status === 'completed') return 'completed';
+    return 'default';
+  };
+
+  const handleButtonClick = (memberId) => {
+    const state = getButtonState(memberId);
+    if (state === 'default') {
+      onChallenge(memberId);
+    } else if (state === 'completed') {
+      onViewChallenge(memberId);
+    }
+  };
+
+  const getButtonText = (memberId) => {
+    const state = getButtonState(memberId);
+    if (state === 'pending') return '⏳ Pending';
+    if (state === 'completed') return '👁️ View';
+    return 'Challenge';
+  };
+
+  const getButtonStyle = (memberId) => {
+    const state = getButtonState(memberId);
+    if (state === 'pending') {
+      return 'px-3 py-1 bg-gray-300 text-dark text-xs rounded font-medium cursor-not-allowed opacity-60';
+    }
+    if (state === 'completed') {
+      return 'px-3 py-1 bg-green-500 text-white text-xs rounded font-medium hover:bg-green-600';
+    }
+    return 'px-3 py-1 bg-primary text-white text-xs rounded font-medium hover:bg-primary/90';
   };
 
   if (loading) {
@@ -59,10 +106,11 @@ const Leaderboard = ({ communityId, onChallenge }) => {
           </div>
           {member.user_id !== user?.id && (
             <button
-              onClick={() => onChallenge(member.user_id)}
-              className="px-3 py-1 bg-primary text-white text-xs rounded font-medium hover:bg-primary/90"
+              onClick={() => handleButtonClick(member.user_id)}
+              disabled={getButtonState(member.user_id) === 'pending'}
+              className={getButtonStyle(member.user_id)}
             >
-              Challenge
+              {getButtonText(member.user_id)}
             </button>
           )}
         </div>
