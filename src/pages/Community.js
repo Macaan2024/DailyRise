@@ -5,6 +5,7 @@ import Layout from '../components/Layout';
 import Header from '../components/Header';
 import Leaderboard from '../components/Leaderboard';
 import ChallengeModal from '../components/ChallengeModal';
+import ChallengeReceivedModal from '../components/ChallengeReceivedModal';
 import Swal from 'sweetalert2';
 
 const Community = () => {
@@ -20,10 +21,18 @@ const Community = () => {
   const [selectedCommunity, setSelectedCommunity] = useState(null);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [challengedUserId, setChallengedUserId] = useState(null);
+  const [pendingChallenges, setPendingChallenges] = useState([]);
+  const [showChallengeReceivedModal, setShowChallengeReceivedModal] = useState(false);
+  const [selectedChallengeId, setSelectedChallengeId] = useState(null);
 
   useEffect(() => {
     if (user) {
       fetchJoinedCommunities();
+      fetchPendingChallenges();
+      
+      // Poll for new challenges every 5 seconds
+      const interval = setInterval(fetchPendingChallenges, 5000);
+      return () => clearInterval(interval);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -37,6 +46,27 @@ const Community = () => {
       setJoinedCommunities(data?.map(m => m.community_id) || []);
     } catch (error) {
       console.error('Error fetching joined communities:', error);
+    }
+  };
+
+  const fetchPendingChallenges = async () => {
+    try {
+      const { data } = await supabase
+        .from('challenges')
+        .select('*')
+        .eq('challenged_user_id', user.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+      
+      setPendingChallenges(data || []);
+      
+      // Auto-show first pending challenge modal if any exist
+      if (data && data.length > 0 && !selectedChallengeId) {
+        setSelectedChallengeId(data[0].id);
+        setShowChallengeReceivedModal(true);
+      }
+    } catch (error) {
+      console.error('Error fetching pending challenges:', error);
     }
   };
 
@@ -66,8 +96,6 @@ const Community = () => {
       });
     } catch (error) {
       console.error('Join error:', error);
-      console.error('Error code:', error?.code);
-      console.error('Error message:', error?.message);
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -112,11 +140,26 @@ const Community = () => {
     setShowChallengeModal(true);
   };
 
+  const handleChallengeRespond = () => {
+    // Refresh pending challenges after responding
+    fetchPendingChallenges();
+    setSelectedChallengeId(null);
+  };
+
   return (
     <Layout>
       <Header title="Community Accountability" />
       
       <div className="px-4 py-4 pb-32">
+        {/* Show challenge notification badge */}
+        {pendingChallenges.length > 0 && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+            <p className="text-small text-yellow-900">
+              🎯 You have <span className="font-bold">{pendingChallenges.length}</span> pending challenge{pendingChallenges.length > 1 ? 's' : ''}!
+            </p>
+          </div>
+        )}
+
         {selectedCommunity ? (
           // Show leaderboard for selected community
           <div>
@@ -175,6 +218,19 @@ const Community = () => {
         challengedUserId={challengedUserId}
         onClose={() => setShowChallengeModal(false)}
         onSuccess={() => {}}
+      />
+
+      <ChallengeReceivedModal
+        isOpen={showChallengeReceivedModal}
+        challengeId={selectedChallengeId}
+        onClose={() => {
+          setShowChallengeReceivedModal(false);
+          // Check if there are more pending challenges
+          setTimeout(() => {
+            fetchPendingChallenges();
+          }, 500);
+        }}
+        onRespond={handleChallengeRespond}
       />
     </Layout>
   );

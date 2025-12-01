@@ -35,7 +35,8 @@ src/
 │   ├── AddHabitModal.js     # Add/edit habit modal
 │   ├── SelectHabitModal.js  # Select existing habit modal
 │   ├── Leaderboard.js       # Community leaderboard with rankings
-│   └── ChallengeModal.js    # Challenge modal for sending habit challenges
+│   ├── ChallengeModal.js    # Challenge modal for sending habit challenges
+│   └── ChallengeReceivedModal.js # Modal for accepting/declining challenges
 ├── contexts/                # React contexts
 │   └── AuthContext.js       # Authentication context
 ├── hooks/                   # Custom hooks
@@ -128,9 +129,16 @@ src/
      - Display member name, profile image, and total points
      - Real-time ranking updates from database
    - **Challenge System** 🎯:
-     - Click "Challenge" button next to any community member
+     - **Send Challenge**: Click "Challenge" button next to any community member
      - Select one of your habits to challenge them with
-     - Challenged user earns 25 points if they complete the habit
+     - **Receive Challenge Notifications**:
+       - Notification badge shows pending challenge count
+       - Challenge modal appears with challenger name and habit
+       - Display reward information (25 points)
+     - **Accept or Decline**: 
+       - Accept to earn 25 points upon habit completion
+       - Decline to reject the challenge
+       - Poll system checks for new challenges every 5 seconds
      - Track all pending and completed challenges in database
    - Leave communities anytime
    - View all available communities
@@ -197,23 +205,26 @@ The "React App" workflow runs `npm start` on port 5000.
 - Output: `build/`
 
 ## Recent Changes
-- **2025-12-01 Leaderboard & Challenge System**:
+- **2025-12-01 Complete Challenge System with Acceptance/Decline**:
   - **Created New Database Tables**:
     - `user_points`: Tracks points per user per community
-    - `challenges`: Stores habit challenges between users
+    - `challenges`: Stores habit challenges between users (status: pending/completed/declined)
     - `community_leaderboard`: VIEW for easy ranking queries
   - **New Components**:
     - `Leaderboard.js`: Displays community members ranked by points
-    - `ChallengeModal.js`: Modal to select habit and challenge other users
+    - `ChallengeModal.js`: Modal to select habit and send challenges
+    - `ChallengeReceivedModal.js`: Modal for receiving & responding to challenges
   - **Updated Community Page**:
     - Click any joined community to view leaderboard
     - Challenge button appears next to each member
-    - Back button to return to communities list
-  - **Features**:
-    - Real-time point tracking and ranking
-    - Habit challenge system with +25 points reward
-    - Database-backed leaderboard
-  - Status: ✅ Production Ready - Full leaderboard and challenge system live
+    - Pending challenge notification badge
+    - Automatic polling for new challenges (5-second interval)
+  - **Challenge Flow**:
+    - Send challenge → Select habit → Challenger receives notification
+    - Receive modal shows challenger name and habit to complete
+    - Accept/Decline buttons to respond
+    - +25 points awarded on completion
+  - Status: ✅ Production Ready - Full bidirectional challenge system live
 
 ## Known Issues & Limitations
 - Web Audio API requires browser to have audio output available
@@ -241,7 +252,9 @@ The "React App" workflow runs `npm start` on port 5000.
 - ✅ Gamified progress tracking (auto-badges)
 - ✅ Clickable Enable button in Alerts
 - ✅ Community Leaderboard with real-time rankings
-- ✅ Challenge System with +25 points rewards
+- ✅ Challenge System with send/accept/decline flow
+- ✅ Challenge Notifications with polling system
+- ✅ +25 points rewards for challenge completion
 
 ## DailyRise Unique Value Proposition
 **What makes us different from other habit trackers:**
