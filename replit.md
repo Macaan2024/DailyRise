@@ -185,13 +185,14 @@ The "React App" workflow runs `npm start` on port 5000.
 - **2025-12-01 Complete Points & Rewards System**: 
   - Fixed community creation error (description now optional with default)
   - Added 4 dashboard stat cards: Today's Progress, Badges Earned, Points, Communities
-  - Implemented points system: +10 points per completed habit
+  - **Dynamic Points System**: +10 when marking habit as done, -10 when unchecking
+  - Points toggle up and down based on user actions (not static calculation)
+  - Points persist in localStorage per user session
   - Created Rewards page with claimable badges (Bronze/Silver/Gold/Diamond)
   - Added physical rewards: T-Shirt, Hoodie, Trophy
   - Rewards accessible via new bottom nav item
   - Goals now have select dropdown with title examples
   - Communities now have select dropdown with name examples
-  - Points auto-calculate from completed habits count
   - Claimed rewards stored in localStorage
 
 ## Known Issues & Limitations

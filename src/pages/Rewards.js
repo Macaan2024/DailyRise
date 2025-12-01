@@ -15,6 +15,10 @@ const Rewards = () => {
   useEffect(() => {
     if (user) {
       fetchData();
+      const savedPoints = localStorage.getItem(`user_points_${user.id}`);
+      if (savedPoints) {
+        setUserPoints(parseInt(savedPoints));
+      }
     }
   }, [user]);
 

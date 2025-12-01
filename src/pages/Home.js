@@ -29,6 +29,10 @@ const Home = () => {
     if (user) {
       fetchHabits();
       fetchGoalsAndBadges();
+      const savedPoints = localStorage.getItem(`user_points_${user.id}`);
+      if (savedPoints) {
+        setUserPoints(parseInt(savedPoints));
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -103,22 +107,35 @@ const Home = () => {
     }
   };
 
+  const updateUserPoints = (pointsChange) => {
+    const currentPoints = parseInt(localStorage.getItem(`user_points_${user.id}`) || '0');
+    const newPoints = Math.max(0, currentPoints + pointsChange);
+    localStorage.setItem(`user_points_${user.id}`, newPoints.toString());
+    setUserPoints(newPoints);
+  };
+
   const handleToggleHabit = async (habitId, currentStatus) => {
     try {
       const existingLog = todayLogs[habitId];
       let newStatus;
+      let pointsChange = 0;
 
       if (!existingLog) {
         newStatus = 'done';
+        pointsChange = 10;
       } else if (currentStatus === 'done') {
         newStatus = 'missed';
+        pointsChange = -10;
       } else if (currentStatus === 'missed') {
         newStatus = null;
+        pointsChange = 0;
       } else {
         newStatus = 'done';
+        pointsChange = 10;
       }
 
       if (newStatus === null && existingLog) {
+        const wasCompleted = existingLog.status === 'done';
         await supabase
           .from('habit_logs')
           .delete()
@@ -127,7 +144,12 @@ const Home = () => {
         const newLogs = { ...todayLogs };
         delete newLogs[habitId];
         setTodayLogs(newLogs);
+        
+        if (wasCompleted) {
+          updateUserPoints(-10);
+        }
       } else if (existingLog) {
+        const wasCompleted = existingLog.status === 'done';
         const { data, error } = await supabase
           .from('habit_logs')
           .update({ status: newStatus })
@@ -137,6 +159,7 @@ const Home = () => {
 
         if (error) throw error;
         setTodayLogs({ ...todayLogs, [habitId]: data });
+        updateUserPoints(pointsChange);
       } else {
         const { data, error } = await supabase
           .from('habit_logs')
@@ -146,6 +169,7 @@ const Home = () => {
 
         if (error) throw error;
         setTodayLogs({ ...todayLogs, [habitId]: data });
+        updateUserPoints(pointsChange);
         
         // Check and award badges after marking habit as done
         if (newStatus === 'done') {
