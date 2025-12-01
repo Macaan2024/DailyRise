@@ -7,32 +7,21 @@ import Swal from 'sweetalert2';
 
 const Community = () => {
   const { user } = useAuth();
-  const [communities, setCommunities] = useState([]);
+  const [communities] = useState([
+    { id: 1, name: 'Fitness Warriors', description: 'Exercise and fitness challenges' },
+    { id: 2, name: 'Meditation Masters', description: 'Mindfulness and meditation group' },
+    { id: 3, name: 'Reading Circle', description: 'Daily reading habits' },
+    { id: 4, name: 'Productivity Pros', description: 'Build productive habits together' },
+    { id: 5, name: 'Health Champions', description: 'Health and wellness community' },
+  ]);
   const [joinedCommunities, setJoinedCommunities] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
-      fetchCommunities();
       fetchJoinedCommunities();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
-
-  const fetchCommunities = async () => {
-    try {
-      setLoading(true);
-      const { data } = await supabase
-        .from('community')
-        .select('*')
-        .order('id', { ascending: true });
-      setCommunities(data || []);
-    } catch (error) {
-      console.error('Error fetching communities:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchJoinedCommunities = async () => {
     try {
@@ -68,6 +57,7 @@ const Community = () => {
         confirmButtonColor: '#043915',
       });
     } catch (error) {
+      console.error('Join error:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
@@ -111,45 +101,31 @@ const Community = () => {
       <Header title="Community Accountability" />
       
       <div className="px-4 py-4 pb-32">
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : (
-          <>
-            <div className="space-y-3">
-              {communities.map((community) => {
-                const isJoined = joinedCommunities.includes(community.id);
-                return (
-                  <div key={community.id} className="card">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-body font-medium text-dark">{community.name}</h3>
-                        <p className="text-small text-gray-500">{community.description}</p>
-                      </div>
-                      <button
-                        onClick={() => isJoined ? leaveCommunity(community.id) : joinCommunity(community.id)}
-                        className={`px-4 py-2 text-xs rounded font-medium whitespace-nowrap ml-3 ${
-                          isJoined
-                            ? 'bg-red-500 text-white hover:bg-red-600'
-                            : 'bg-primary text-white hover:bg-primary/90'
-                        }`}
-                      >
-                        {isJoined ? 'Leave' : '+ Join'}
-                      </button>
+        <div className="space-y-3">
+            {communities.map((community) => {
+              const isJoined = joinedCommunities.includes(community.id);
+              return (
+                <div key={community.id} className="card">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-body font-medium text-dark">{community.name}</h3>
+                      <p className="text-small text-gray-500">{community.description}</p>
                     </div>
+                    <button
+                      onClick={() => isJoined ? leaveCommunity(community.id) : joinCommunity(community.id)}
+                      className={`px-4 py-2 text-xs rounded font-medium whitespace-nowrap ml-3 ${
+                        isJoined
+                          ? 'bg-red-500 text-white hover:bg-red-600'
+                          : 'bg-primary text-white hover:bg-primary/90'
+                      }`}
+                    >
+                      {isJoined ? 'Leave' : '+ Join'}
+                    </button>
                   </div>
-                );
-              })}
-            </div>
-
-            {communities.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-body text-gray-500">No communities available</p>
-              </div>
-            )}
-          </>
-        )}
+                </div>
+              );
+            })}
+        </div>
       </div>
     </Layout>
   );
