@@ -61,7 +61,7 @@ const Community = () => {
       const { data } = await supabase
         .from('challenges')
         .select('*')
-        .eq('challengee_id', user.id)
+        .eq('challenged_user_id', user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
       
@@ -147,7 +147,7 @@ const Community = () => {
         .from('challenges')
         .select('id')
         .eq('challenger_id', user.id)
-        .eq('challengee_id', userId)
+        .eq('challenged_user_id', userId)
         .eq('status', 'completed')
         .single();
 

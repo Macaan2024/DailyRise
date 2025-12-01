@@ -50,7 +50,7 @@ const ChallengeModal = ({ isOpen, communityId, challengedUserId, onClose, onSucc
         .from('challenges')
         .insert([{
           challenger_id: user.id,
-          challengee_id: challengedUserId,
+          challenged_user_id: challengedUserId,
           habit_id: selectedHabit,
           community_id: communityId,
           status: 'pending'
