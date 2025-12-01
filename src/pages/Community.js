@@ -12,8 +12,13 @@ const Community = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newCommunity, setNewCommunity] = useState({ name: '', description: '' });
+  const [selectedCommunityId, setSelectedCommunityId] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [habits, setHabits] = useState([]);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedHabit, setSelectedHabit] = useState('');
 
-  // eslint-disable-next-line no-unused-vars
   const communityNameExamples = [
     'Morning Runners',
     'Study Partners',
@@ -32,9 +37,22 @@ const Community = () => {
   useEffect(() => {
     if (user) {
       fetchCommunities();
+      fetchHabits();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  const fetchHabits = async () => {
+    try {
+      const { data } = await supabase
+        .from('habits')
+        .select('*')
+        .eq('user_id', user.id);
+      setHabits(data || []);
+    } catch (error) {
+      console.error('Error fetching habits:', error);
+    }
+  };
 
   const fetchCommunities = async () => {
     try {
@@ -54,6 +72,29 @@ const Community = () => {
       console.error('Error fetching communities:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchLeaderboard = async (communityId) => {
+    try {
+      const { data: members } = await supabase
+        .from('community_members')
+        .select('user_id')
+        .eq('community_id', communityId);
+
+      if (!members) return;
+
+      // Get user details and points
+      const memberIds = members.map(m => m.user_id);
+      const leaderboardData = memberIds.map(userId => {
+        const points = parseInt(localStorage.getItem(`user_points_${userId}`) || '0');
+        return { userId, points };
+      }).sort((a, b) => b.points - a.points);
+
+      setLeaderboard(leaderboardData);
+      setSelectedCommunityId(communityId);
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
     }
   };
 
@@ -142,10 +183,14 @@ const Community = () => {
       if (error) throw error;
 
       setUserCommunities(userCommunities.filter(id => id !== communityId));
+      if (selectedCommunityId === communityId) {
+        setSelectedCommunityId(null);
+        setLeaderboard([]);
+      }
 
       Swal.fire({
         icon: 'success',
-        title: 'Left',
+        title: 'Left!',
         text: 'You left the community',
         timer: 1500,
         confirmButtonColor: '#043915',
@@ -160,13 +205,58 @@ const Community = () => {
     }
   };
 
+  const sendChallenge = async (challengeeId) => {
+    if (!selectedHabit) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Please select a habit to challenge',
+        confirmButtonColor: '#043915',
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('challenges')
+        .insert([{
+          challenger_id: user.id,
+          challengee_id: challengeeId,
+          habit_id: parseInt(selectedHabit),
+          community_id: selectedCommunityId,
+          status: 'pending'
+        }]);
+
+      if (error) throw error;
+
+      setShowChallengeModal(false);
+      setSelectedUser(null);
+      setSelectedHabit('');
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Challenge Sent!',
+        text: 'Challenge sent to user',
+        timer: 1500,
+        confirmButtonColor: '#043915',
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to send challenge',
+        confirmButtonColor: '#043915',
+      });
+    }
+  };
+
   return (
     <Layout>
-      <Header title="Communities" />
-
+      <Header title="Community" />
+      
       <div className="px-4 py-4 pb-32">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-subheading font-poppins text-dark">Join a Community</h2>
+          <h2 className="text-subheading font-poppins text-dark">Communities</h2>
           <button
             onClick={() => setShowCreateModal(true)}
             className="flex items-center gap-1 text-body text-primary"
@@ -182,45 +272,131 @@ const Community = () => {
           <div className="flex justify-center py-12">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
-        ) : communities.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM12 14c-5.373 0-9 2.686-9 6v2h18v-2c0-3.314-3.627-6-9-6z" />
-              </svg>
-            </div>
-            <p className="text-body text-gray-500 mb-4">No communities available yet</p>
-          </div>
         ) : (
-          <div className="space-y-4">
-            {communities.map((community) => {
-              const isMember = userCommunities.includes(community.id);
-              return (
-                <div key={community.id} className="card">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-body font-medium text-dark">{community.name}</h3>
-                      <p className="text-xs text-gray-500 mt-1">{community.description}</p>
-                      <p className="text-xs text-primary mt-2">👥 Community Group</p>
-                    </div>
-                    <button
-                      onClick={() => isMember ? leaveCommunity(community.id) : joinCommunity(community.id)}
-                      className={`px-4 py-2 rounded-lg text-body font-medium transition-colors ${
-                        isMember
-                          ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          : 'bg-primary text-white hover:bg-primary/90'
-                      }`}
-                    >
-                      {isMember ? 'Leave' : 'Join'}
-                    </button>
-                  </div>
+          <>
+            {/* Your Communities */}
+            {userCommunities.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-body font-medium text-dark mb-3">My Communities</h3>
+                <div className="space-y-2">
+                  {communities
+                    .filter(c => userCommunities.includes(c.id))
+                    .map((community) => (
+                      <div key={community.id} className="card">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-subheading text-dark">{community.name}</h4>
+                            <p className="text-small text-gray-500">{community.description}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => fetchLeaderboard(community.id)}
+                              className="px-3 py-1 bg-primary text-white text-xs rounded hover:bg-primary/90"
+                            >
+                              Leaderboard
+                            </button>
+                            <button
+                              onClick={() => leaveCommunity(community.id)}
+                              className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                            >
+                              Leave
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            )}
+
+            {/* Leaderboard */}
+            {selectedCommunityId && leaderboard.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-body font-medium text-dark">🏆 Leaderboard</h3>
+                  <button
+                    onClick={() => setSelectedCommunityId(null)}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Close
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {leaderboard.map((entry, index) => (
+                    <div key={entry.userId} className="card bg-gradient-to-r from-primary/10 to-transparent">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <p className="text-body font-medium text-dark">
+                              {entry.userId === user.id ? '👤 You' : 'Community Member'}
+                            </p>
+                            <p className="text-small text-gray-500">{entry.points} points</p>
+                          </div>
+                        </div>
+                        {entry.userId !== user.id && (
+                          <button
+                            onClick={() => {
+                              setSelectedUser(entry.userId);
+                              setShowChallengeModal(true);
+                            }}
+                            className="px-3 py-1 bg-primary text-white text-xs rounded hover:bg-primary/90"
+                          >
+                            Challenge
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Available Communities */}
+            {communities.filter(c => !userCommunities.includes(c.id)).length > 0 && (
+              <div>
+                <h3 className="text-body font-medium text-dark mb-3">Discover Communities</h3>
+                <div className="space-y-2">
+                  {communities
+                    .filter(c => !userCommunities.includes(c.id))
+                    .map((community) => (
+                      <div key={community.id} className="card">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-subheading text-dark">{community.name}</h4>
+                            <p className="text-small text-gray-500">{community.description}</p>
+                          </div>
+                          <button
+                            onClick={() => joinCommunity(community.id)}
+                            className="px-4 py-2 bg-primary text-white text-body font-medium rounded hover:bg-primary/90"
+                          >
+                            Join
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {communities.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-body text-gray-500 mb-4">No communities yet. Create one!</p>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="btn-primary"
+                >
+                  Create First Community
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
+      {/* Create Community Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end overflow-hidden">
           <div className="bg-white w-full max-h-[85vh] rounded-t-3xl overflow-hidden flex flex-col animate-slide-up">
@@ -236,30 +412,31 @@ const Community = () => {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-              <div>
-                <label className="block text-body text-gray-600 mb-2 font-medium">Community Name</label>
-                <select
-                  value={newCommunity.name}
-                  onChange={(e) => setNewCommunity({ ...newCommunity, name: e.target.value })}
-                  className="input-field w-full"
-                >
-                  <option value="">Select a community type...</option>
-                  {communityNameExamples.map((name) => (
-                    <option key={name} value={name}>{name}</option>
-                  ))}
-                </select>
-              </div>
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-body text-gray-600 mb-3 font-medium">Community Name</label>
+                  <select
+                    value={newCommunity.name}
+                    onChange={(e) => setNewCommunity({ ...newCommunity, name: e.target.value })}
+                    className="input-field w-full"
+                  >
+                    <option value="">Select a name...</option>
+                    {communityNameExamples.map((name) => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-body text-gray-600 mb-2 font-medium">Description</label>
-                <textarea
-                  value={newCommunity.description}
-                  onChange={(e) => setNewCommunity({ ...newCommunity, description: e.target.value })}
-                  placeholder="Tell others about this community..."
-                  rows="4"
-                  className="input-field w-full resize-none"
-                />
+                <div>
+                  <label className="block text-body text-gray-600 mb-3 font-medium">Description</label>
+                  <textarea
+                    value={newCommunity.description}
+                    onChange={(e) => setNewCommunity({ ...newCommunity, description: e.target.value })}
+                    placeholder="Describe your community..."
+                    className="input-field w-full h-24 resize-none"
+                  />
+                </div>
               </div>
             </div>
 
@@ -272,6 +449,65 @@ const Community = () => {
               </button>
               <button
                 onClick={() => setShowCreateModal(false)}
+                className="w-full py-3 rounded-lg bg-gray-100 text-gray-600 text-body font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Challenge Modal */}
+      {showChallengeModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end overflow-hidden">
+          <div className="bg-white w-full max-h-[85vh] rounded-t-3xl overflow-hidden flex flex-col animate-slide-up">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+              <h2 className="text-heading font-poppins text-dark">Send Challenge</h2>
+              <button 
+                onClick={() => {
+                  setShowChallengeModal(false);
+                  setSelectedUser(null);
+                }} 
+                className="p-1 text-gray-400 hover:text-gray-600"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-body font-medium text-dark mb-2">Challenge them to complete:</p>
+                  <select
+                    value={selectedHabit}
+                    onChange={(e) => setSelectedHabit(e.target.value)}
+                    className="input-field w-full"
+                  >
+                    <option value="">Select a habit...</option>
+                    {habits.map((habit) => (
+                      <option key={habit.id} value={habit.id}>{habit.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-small text-gray-500">The user will receive a challenge notification to complete this habit!</p>
+              </div>
+            </div>
+
+            <div className="flex-shrink-0 bg-white border-t border-gray-100 px-6 py-4 space-y-3 pb-24">
+              <button
+                onClick={() => sendChallenge(selectedUser)}
+                className="btn-primary w-full py-3 rounded-lg font-medium text-white"
+              >
+                Send Challenge
+              </button>
+              <button
+                onClick={() => {
+                  setShowChallengeModal(false);
+                  setSelectedUser(null);
+                }}
                 className="w-full py-3 rounded-lg bg-gray-100 text-gray-600 text-body font-medium"
               >
                 Cancel

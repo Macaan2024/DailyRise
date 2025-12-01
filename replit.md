@@ -95,8 +95,8 @@ src/
    - User can preview each alarm before saving reminder
    - Web Audio API generates selected alarm beeps when reminder triggers
    - 60-second countdown modal displays directly (no alerts)
-   - STOP button to dismiss alarm anytime
-   - Continuous alarm playback during countdown
+   - STOP button to dismiss alarm anytime (+10 points awarded)
+   - Continuous alarm playback during countdown (every 1.5 seconds)
    - Works on desktop & mobile
 6. **Goals**: 
    - Create goals with title, target date, and linked habit
@@ -115,15 +115,17 @@ src/
    - Show earned badges with dates
    - Progress counter (X badges earned out of total)
    - Beautiful badge icons and styling
-8. **Community** (Accountability): 
-   - Create community groups/challenges with select dropdown
-   - Join other communities
-   - Leave communities
+8. **Community** (Accountability & Challenges): 
+   - **Create & Join Communities**: Build or join accountability groups
+   - **Leaderboard**: See points ranking of all users in same community
+   - **Challenge System**: Send habit challenges to other community members
+   - **Challenge Modal**: Select any of your habits to challenge others
+   - Leave communities anytime
    - View all available communities
-   - Share progress with friends in communities
+   - 5 Pre-built Communities: Fitness Warriors, Meditation Masters, Reading Circle, Productivity Pros, Health Champions
 
 9. **Rewards & Points System**:
-   - **+10 Points** for each completed habit
+   - **+10 Points** per reminder completion (when clicking STOP)
    - **Point-based Reward Badges**:
      - 🥉 Bronze Badge: 1000 points
      - 🥈 Silver Badge: 3000 points
@@ -135,7 +137,8 @@ src/
      - 🏆 Trophy: 7500 points
    - Track claimed rewards and total points earned
    - Rewards page with claim functionality
-9. **Profile**: 
+   - Real-time points sync across all pages
+10. **Profile**: 
    - Image upload up to 2MB with preview confirmation
    - Account settings with SweetAlert validation
    - Password change with smart alerts
@@ -182,15 +185,15 @@ The "React App" workflow runs `npm start` on port 5000.
 - Output: `build/`
 
 ## Recent Changes
-- **2025-12-01 Fixed Rewards Display & Alarm System**:
-  - **Fixed Rewards Points Display**: Now reads accurate points from localStorage (earned via reminders)
-  - **Fixed Notification Modal**: Modal now reappears for each new reminder (doesn't disappear after first use)
-  - **Fixed Alarm Sound Loop**: Alarm now plays continuously every 1.5 seconds (no gaps) until STOP clicked or countdown ends
-  - **Real-time Points Update**: Rewards page updates instantly when user completes a reminder
-  - **Improved State Management**: Reminder modal properly resets after each alarm cycle
-  - Dashboard habits remain display-only (no check/X buttons)
-  - Points ONLY earned via reminder STOP button (+10 per reminder)
-  - All localStorage values sync correctly across pages
+- **2025-12-01 Community Leaderboard & Challenge System**:
+  - Created `community`, `community_members`, `challenges`, and `habits` database tables
+  - Added leaderboard showing points ranking of users in same community
+  - Implemented challenge system - users can challenge others to complete specific habits
+  - Community members can see each other's points and compete
+  - Challenge modal allows selecting any of user's habits to send as challenge
+  - 5 pre-built communities auto-populated: Fitness Warriors, Meditation Masters, Reading Circle, Productivity Pros, Health Champions
+  - Fixed Rewards points display and alarm system
+  - Real-time points synchronization across all pages
 
 ## Known Issues & Limitations
 - RLS policies use simplified settings (USING true) due to custom authentication limitations
