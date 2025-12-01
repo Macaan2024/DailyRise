@@ -21,6 +21,7 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
           status,
           created_at,
           completed_at,
+          winner_id,
           challenger_id,
           challenged_user_id,
           habit_id,
@@ -48,8 +49,11 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
   const challengedName = `${challenge.challengee?.firstname} ${challenge.challengee?.lastname}`;
   const habitName = challenge.habits?.name || 'Unknown Habit';
   const isCompleted = challenge.status === 'completed';
+  const winnerId = challenge.winner_id;
   const challengerImage = challenge.challenger?.image;
   const challengedImage = challenge.challengee?.image;
+  const challengerAge = challenge.challenger?.age || 'N/A';
+  const challengedAge = challenge.challengee?.age || 'N/A';
   const challengerGender = challenge.challenger?.gender || 'N/A';
   const challengedGender = challenge.challengee?.gender || 'N/A';
 
@@ -70,20 +74,39 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
           <div className="flex items-center gap-6 mb-8">
             {/* Left: Challenger */}
             <div className="flex-1">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl p-6 border border-blue-200/60 shadow-sm">
+              <div className={`bg-gradient-to-br rounded-2xl p-6 border shadow-sm ${
+                winnerId === challenge.challenger_id 
+                  ? 'from-yellow-50 to-yellow-100/50 border-yellow-300' 
+                  : 'from-blue-50 to-blue-100/50 border-blue-200/60'
+              }`}>
                 <div className="flex flex-col items-center">
                   <div className="relative mb-4">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full blur opacity-30"></div>
+                    <div className={`absolute inset-0 rounded-full blur opacity-30 ${
+                      winnerId === challenge.challenger_id
+                        ? 'bg-gradient-to-r from-yellow-400 to-amber-400'
+                        : 'bg-gradient-to-r from-blue-400 to-cyan-400'
+                    }`}></div>
                     <img
                       src={challengerImage || 'https://via.placeholder.com/96?text=User'}
                       alt={challengerName}
-                      className="relative w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
+                      className={`relative w-24 h-24 rounded-full border-4 shadow-lg object-cover ${
+                        winnerId === challenge.challenger_id ? 'border-yellow-300' : 'border-white'
+                      }`}
                     />
+                    {winnerId === challenge.challenger_id && (
+                      <div className="absolute -top-2 -right-2 bg-yellow-400 rounded-full p-1">
+                        <span className="text-xl">🏆</span>
+                      </div>
+                    )}
                   </div>
                   <p className="text-sm font-bold text-dark text-center mb-1">{challengerName}</p>
-                  <p className="text-xs text-gray-600 mb-3">👤 {challengerGender}</p>
-                  <span className="inline-block px-3 py-1 bg-blue-200 text-blue-900 rounded-full text-xs font-semibold">
-                    Challenger
+                  <p className="text-xs text-gray-600 mb-1">👤 {challengerGender}, Age: {challengerAge}</p>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                    winnerId === challenge.challenger_id
+                      ? 'bg-yellow-200 text-yellow-900'
+                      : 'bg-blue-200 text-blue-900'
+                  }`}>
+                    {winnerId === challenge.challenger_id ? '⭐ Winner!' : 'Challenger'}
                   </span>
                 </div>
               </div>
@@ -92,8 +115,10 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
             {/* Center: VS Badge */}
             <div className="flex-shrink-0">
               <div className="flex flex-col items-center gap-2">
-                <div className="bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full w-14 h-14 flex items-center justify-center shadow-xl">
-                  <p className="text-white font-bold text-xl">VS</p>
+                <div className={`rounded-full w-14 h-14 flex items-center justify-center shadow-xl ${
+                  winnerId ? 'bg-gradient-to-br from-green-400 to-emerald-400' : 'bg-gradient-to-br from-yellow-400 to-orange-400'
+                }`}>
+                  <p className="text-white font-bold text-xl">{winnerId ? '✓' : 'VS'}</p>
                 </div>
                 <div className="w-12 h-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
               </div>
@@ -101,20 +126,39 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
 
             {/* Right: Challenged User */}
             <div className="flex-1">
-              <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-2xl p-6 border border-green-200/60 shadow-sm">
+              <div className={`bg-gradient-to-br rounded-2xl p-6 border shadow-sm ${
+                winnerId === challenge.challenged_user_id 
+                  ? 'from-yellow-50 to-yellow-100/50 border-yellow-300' 
+                  : 'from-green-50 to-green-100/50 border-green-200/60'
+              }`}>
                 <div className="flex flex-col items-center">
                   <div className="relative mb-4">
-                    <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full blur opacity-30"></div>
+                    <div className={`absolute inset-0 rounded-full blur opacity-30 ${
+                      winnerId === challenge.challenged_user_id
+                        ? 'bg-gradient-to-r from-yellow-400 to-amber-400'
+                        : 'bg-gradient-to-r from-green-400 to-emerald-400'
+                    }`}></div>
                     <img
                       src={challengedImage || 'https://via.placeholder.com/96?text=User'}
                       alt={challengedName}
-                      className="relative w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
+                      className={`relative w-24 h-24 rounded-full border-4 shadow-lg object-cover ${
+                        winnerId === challenge.challenged_user_id ? 'border-yellow-300' : 'border-white'
+                      }`}
                     />
+                    {winnerId === challenge.challenged_user_id && (
+                      <div className="absolute -top-2 -right-2 bg-yellow-400 rounded-full p-1">
+                        <span className="text-xl">🏆</span>
+                      </div>
+                    )}
                   </div>
                   <p className="text-sm font-bold text-dark text-center mb-1">{challengedName}</p>
-                  <p className="text-xs text-gray-600 mb-3">👤 {challengedGender}</p>
-                  <span className="inline-block px-3 py-1 bg-green-200 text-green-900 rounded-full text-xs font-semibold">
-                    Challenged
+                  <p className="text-xs text-gray-600 mb-1">👤 {challengedGender}, Age: {challengedAge}</p>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                    winnerId === challenge.challenged_user_id
+                      ? 'bg-yellow-200 text-yellow-900'
+                      : 'bg-green-200 text-green-900'
+                  }`}>
+                    {winnerId === challenge.challenged_user_id ? '⭐ Winner!' : 'Challenged'}
                   </span>
                 </div>
               </div>

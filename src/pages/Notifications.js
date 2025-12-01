@@ -165,25 +165,22 @@ const Notifications = () => {
         newValue: newPoints.toString(),
       }));
 
-      // Check if this habit is part of an active challenge
+      // Check if this habit is part of an active challenge and mark user as winner
       try {
         const { data: challenges } = await supabase
           .from('challenges')
-          .select('challenger_id, challenged_user_id')
+          .select('id, challenger_id, challenged_user_id')
           .eq('habit_id', currentAlarmReminder.habitId)
           .eq('status', 'completed')
-          .neq('challenger_id', user.id)
+          .is('winner_id', null)
           .maybeSingle();
 
         if (challenges) {
-          // Award +10 points to the other user as well
-          const otherUserId = challenges.challenger_id === user.id 
-            ? challenges.challenged_user_id 
-            : challenges.challenger_id;
-
-          const otherUserPoints = parseInt(localStorage.getItem(`user_points_${otherUserId}`) || '0');
-          const newOtherUserPoints = otherUserPoints + 10;
-          localStorage.setItem(`user_points_${otherUserId}`, newOtherUserPoints.toString());
+          // Mark current user as winner
+          await supabase
+            .from('challenges')
+            .update({ winner_id: user.id })
+            .eq('id', challenges.id);
         }
       } catch (error) {
         console.error('Error checking for challenges:', error);

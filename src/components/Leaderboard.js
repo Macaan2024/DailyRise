@@ -50,6 +50,7 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
   const getButtonState = (memberId) => {
     const status = sentChallenges[memberId];
     if (status === 'pending') return 'pending';
+    if (status === 'accepted') return 'accepted';
     if (status === 'completed') return 'completed';
     return 'default';
   };
@@ -58,7 +59,7 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
     const state = getButtonState(memberId);
     if (state === 'default') {
       onChallenge(memberId);
-    } else if (state === 'completed') {
+    } else if (state === 'accepted' || state === 'completed') {
       onViewChallenge(memberId);
     }
   };
@@ -66,16 +67,16 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
   const getButtonText = (memberId) => {
     const state = getButtonState(memberId);
     if (state === 'pending') return '⏳ Pending';
-    if (state === 'completed') return '👁️ View';
-    return 'Challenge';
+    if (state === 'accepted' || state === 'completed') return '👁️ View';
+    return '🎯 Challenge';
   };
 
   const getButtonStyle = (memberId) => {
     const state = getButtonState(memberId);
     if (state === 'pending') {
-      return 'px-3 py-1 bg-gray-300 text-dark text-xs rounded font-medium cursor-not-allowed opacity-60';
+      return 'px-3 py-1 bg-yellow-300 text-dark text-xs rounded font-medium cursor-not-allowed opacity-70';
     }
-    if (state === 'completed') {
+    if (state === 'accepted' || state === 'completed') {
       return 'px-3 py-1 bg-green-500 text-white text-xs rounded font-medium hover:bg-green-600';
     }
     return 'px-3 py-1 bg-primary text-white text-xs rounded font-medium hover:bg-primary/90';

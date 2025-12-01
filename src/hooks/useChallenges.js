@@ -22,6 +22,7 @@ export const useChallenges = (userId, communityId) => {
 
       const map = {};
       data?.forEach(c => {
+        // Map 'completed' status to 'accepted' for pending view logic
         map[c.challenged_user_id] = c.status;
       });
       setSentChallenges(map);
