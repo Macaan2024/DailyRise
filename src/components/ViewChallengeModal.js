@@ -62,120 +62,164 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
   const challengedGender = challenge.challengee?.gender || 'N/A';
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl">
-        {/* Premium Header */}
-        <div className="bg-gradient-to-r from-primary via-primary/95 to-primary/85 px-8 py-8">
-          <h3 className="text-2xl font-bold text-white text-center mb-1">
-            🎯 Challenge Battle
-          </h3>
-          <p className="text-primary/30 text-center text-sm">Accountability Challenge</p>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl animate-fade-in">
+        {/* Premium Header - More Elegant */}
+        <div className="relative h-32 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 overflow-hidden">
+          {/* Decorative Elements */}
+          <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -ml-16 -mb-16"></div>
+          
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-all"
+          >
+            ✕
+          </button>
+
+          <div className="relative h-full flex flex-col justify-center items-center px-8">
+            <p className="text-primary/40 text-xs font-semibold uppercase tracking-widest mb-2">Accountability Challenge</p>
+            <h3 className="text-3xl font-bold text-white text-center">⚡ Challenge Battle</h3>
+          </div>
         </div>
-        
+
         {/* Content */}
-        <div className="px-8 py-8">
-          {/* Left-Right Layout */}
-          <div className="flex items-center gap-6 mb-8">
-            {/* Left: Challenger */}
-            <div className="flex-1">
-              <div className="bg-gradient-to-br rounded-2xl p-6 border shadow-sm from-blue-50 to-blue-100/50 border-blue-200/60">
-                <div className="flex flex-col items-center">
-                  <div className="relative mb-4">
-                    <div className="absolute inset-0 rounded-full blur opacity-30 bg-gradient-to-r from-blue-400 to-cyan-400"></div>
-                    <img
-                      src={challengerImage || 'https://via.placeholder.com/96?text=User'}
-                      alt={challengerName}
-                      className="relative w-24 h-24 rounded-full border-4 shadow-lg object-cover border-white"
-                    />
-                  </div>
-                  <p className="text-sm font-bold text-dark text-center mb-1">{challengerName}</p>
-                  <p className="text-xs text-gray-600 mb-1">👤 {challengerGender}, Age: {challengerAge}</p>
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-200 text-blue-900">
-                    Challenger
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Center: VS Badge */}
-            <div className="flex-shrink-0">
-              <div className="flex flex-col items-center gap-2">
-                <div className="rounded-full w-14 h-14 flex items-center justify-center shadow-xl bg-gradient-to-br from-yellow-400 to-orange-400">
-                  <p className="text-white font-bold text-xl">VS</p>
-                </div>
-                <div className="w-12 h-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-              </div>
-            </div>
-
-            {/* Right: Challenged User */}
-            <div className="flex-1">
-              <div className="bg-gradient-to-br rounded-2xl p-6 border shadow-sm from-green-50 to-green-100/50 border-green-200/60">
-                <div className="flex flex-col items-center">
-                  <div className="relative mb-4">
-                    <div className="absolute inset-0 rounded-full blur opacity-30 bg-gradient-to-r from-green-400 to-emerald-400"></div>
-                    <img
-                      src={challengedImage || 'https://via.placeholder.com/96?text=User'}
-                      alt={challengedName}
-                      className="relative w-24 h-24 rounded-full border-4 shadow-lg object-cover border-white"
-                    />
-                  </div>
-                  <p className="text-sm font-bold text-dark text-center mb-1">{challengedName}</p>
-                  <p className="text-xs text-gray-600 mb-1">👤 {challengedGender}, Age: {challengedAge}</p>
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-200 text-green-900">
-                    Challenged
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Separator Line */}
-          <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent mb-8"></div>
-
-          {/* Habit Challenge Section */}
-          <div className="mb-6">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 text-center">Challenge Objective</p>
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200/60 rounded-2xl p-6 shadow-sm">
-              <p className="text-center text-base font-bold text-primary mb-1">
-                "{habitName}"
-              </p>
-              <p className="text-xs text-purple-700 text-center">
-                💪 Complete this habit together to earn rewards
-              </p>
-            </div>
-          </div>
-
-          {/* Status Badge */}
-          <div className="flex justify-center mb-6">
+        <div className="px-8 py-10">
+          {/* Status Section */}
+          <div className="mb-8 flex justify-center">
             {isCompleted ? (
-              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300 rounded-full">
+              <div className="inline-flex items-center gap-3 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full">
                 <span className="text-lg">✅</span>
-                <p className="text-xs font-semibold text-green-900">Challenge Accepted</p>
+                <p className="text-sm font-semibold text-emerald-700">Challenge Accepted</p>
               </div>
             ) : (
-              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-300 rounded-full">
+              <div className="inline-flex items-center gap-3 px-4 py-2 bg-amber-50 border border-amber-200 rounded-full">
                 <span className="text-lg">⏳</span>
-                <p className="text-xs font-semibold text-yellow-900">Awaiting Response</p>
+                <p className="text-sm font-semibold text-amber-700">Awaiting Response</p>
               </div>
             )}
           </div>
 
-          {/* Reward Box - Premium Design */}
-          <div className="bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 border border-amber-300/40 rounded-2xl p-6 mb-6 shadow-sm">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <span className="text-2xl">✨</span>
-              <p className="text-center font-bold text-gray-900 text-lg">Both Earn +10 Points</p>
-              <span className="text-2xl">✨</span>
+          {/* User Cards - Elegant Side-by-Side */}
+          <div className="grid grid-cols-2 gap-6 mb-10">
+            {/* Challenger Card */}
+            <div className="group">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-50/50 border border-blue-100/80 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex flex-col items-center">
+                  {/* Profile Image */}
+                  <div className="relative mb-5">
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-cyan-300 blur-lg opacity-25 group-hover:opacity-40 transition-opacity"></div>
+                    <img
+                      src={challengerImage || 'https://via.placeholder.com/100?text=User'}
+                      alt={challengerName}
+                      className="relative w-28 h-28 rounded-full border-4 border-white shadow-lg object-cover"
+                    />
+                  </div>
+
+                  {/* Info */}
+                  <h4 className="text-lg font-bold text-slate-900 text-center mb-2">{challengerName}</h4>
+                  <div className="flex items-center gap-2 text-sm text-slate-600 mb-3">
+                    <span>👤</span>
+                    <span>{challengerGender}</span>
+                    <span>•</span>
+                    <span>{challengerAge} yrs</span>
+                  </div>
+
+                  {/* Badge */}
+                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">
+                    🎖️ Challenger
+                  </span>
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-gray-700 text-center leading-relaxed">
-              When either completes the habit and clicks <span className="font-semibold">STOP</span>, both users instantly earn <span className="font-bold">10 points</span> towards their rewards. 🏆
-            </p>
+
+            {/* Challenged User Card */}
+            <div className="group">
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-50/50 border border-emerald-100/80 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex flex-col items-center">
+                  {/* Profile Image */}
+                  <div className="relative mb-5">
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-400 to-teal-300 blur-lg opacity-25 group-hover:opacity-40 transition-opacity"></div>
+                    <img
+                      src={challengedImage || 'https://via.placeholder.com/100?text=User'}
+                      alt={challengedName}
+                      className="relative w-28 h-28 rounded-full border-4 border-white shadow-lg object-cover"
+                    />
+                  </div>
+
+                  {/* Info */}
+                  <h4 className="text-lg font-bold text-slate-900 text-center mb-2">{challengedName}</h4>
+                  <div className="flex items-center gap-2 text-sm text-slate-600 mb-3">
+                    <span>👤</span>
+                    <span>{challengedGender}</span>
+                    <span>•</span>
+                    <span>{challengedAge} yrs</span>
+                  </div>
+
+                  {/* Badge */}
+                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">
+                    🏅 Challenged
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Action Button */}
+          {/* VS Divider - Elegant */}
+          <div className="flex items-center gap-4 mb-10">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
+            <div className="px-4 py-2 bg-slate-100 rounded-full border border-slate-200">
+              <p className="text-sm font-bold text-slate-600">VS</p>
+            </div>
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
+          </div>
+
+          {/* Habit Challenge - Premium Box */}
+          <div className="mb-8 p-8 bg-gradient-to-br from-slate-50 to-slate-50/50 border border-slate-200/80 rounded-2xl">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 text-center">Challenge Objective</p>
+            <div className="bg-white border border-slate-100 rounded-xl px-6 py-5 text-center">
+              <p className="text-2xl font-bold text-primary mb-2">"{habitName}"</p>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Complete this habit together and showcase your commitment to accountability. When either user completes the habit, both earn rewards! 🎯
+              </p>
+            </div>
+          </div>
+
+          {/* Rewards Info - Elegant */}
+          <div className="mb-10 p-6 bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 border border-amber-200/60 rounded-2xl">
+            <div className="flex items-start gap-4">
+              <div className="text-4xl">✨</div>
+              <div className="flex-1">
+                <p className="text-lg font-bold text-slate-900 mb-1">+10 Points Reward</p>
+                <p className="text-sm text-slate-700 leading-relaxed">
+                  Both participants instantly earn <span className="font-semibold">10 points</span> when the challenge is completed. Use these points to unlock badges and climb the leaderboard! 🏆
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Challenge Timeline */}
+          <div className="mb-10 space-y-3">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Timeline</p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 text-sm text-slate-600">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <span>Challenge created: {new Date(challenge.created_at).toLocaleDateString()}</span>
+              </div>
+              {challenge.completed_at && (
+                <div className="flex items-center gap-3 text-sm text-slate-600">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                  <span>Challenge completed: {new Date(challenge.completed_at).toLocaleDateString()}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Action Button - Premium */}
           <button
             onClick={onClose}
-            className="w-full px-6 py-4 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/95 hover:to-primary/85 text-white rounded-xl font-bold text-base transition-all shadow-lg hover:shadow-xl"
+            className="w-full px-6 py-4 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/95 hover:to-primary/85 text-white rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 transform"
           >
             Got It! Let's Go 💪
           </button>
