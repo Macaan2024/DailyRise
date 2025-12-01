@@ -10,52 +10,6 @@ export const useChallenges = (userId, communityId) => {
 
     // Fetch initial sent challenges
     fetchSentChallenges();
-
-    // Subscribe to sent challenges changes (using new RealtimeChannel API)
-    const sentChannel = supabase.channel(`sent-challenges-${userId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'challenges',
-        filter: `challenger_id=eq.${userId}`
-      }, (payload) => {
-        if (payload.new?.challenger_id === userId) {
-          setSentChallenges(prev => ({
-            ...prev,
-            [payload.new.challengee_id]: payload.new.status
-          }));
-        }
-      })
-      .subscribe();
-
-    // Subscribe to received challenges changes
-    const receivedChannel = supabase.channel(`received-challenges-${userId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'challenges',
-        filter: `challengee_id=eq.${userId}`
-      }, (payload) => {
-        if (payload.new?.challengee_id === userId) {
-          if (payload.new.status === 'pending') {
-            setReceivedChallenges(prev => {
-              const exists = prev.find(c => c.id === payload.new.id);
-              if (exists) return prev;
-              return [...prev, payload.new];
-            });
-          } else if (payload.new.status === 'completed' || payload.new.status === 'declined') {
-            setReceivedChallenges(prev => 
-              prev.filter(c => c.id !== payload.new.id)
-            );
-          }
-        }
-      })
-      .subscribe();
-
-    return () => {
-      sentChannel.unsubscribe();
-      receivedChannel.unsubscribe();
-    };
   }, [userId]);
 
   const fetchSentChallenges = async () => {
