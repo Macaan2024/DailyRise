@@ -209,26 +209,31 @@ The "React App" workflow runs `npm start` on port 5000.
 - Output: `build/`
 
 ## Recent Changes
-- **2025-12-01 Complete Challenge System with Acceptance/Decline**:
-  - **Created New Database Tables**:
-    - `user_points`: Tracks points per user per community
-    - `challenges`: Stores habit challenges between users (status: pending/completed/declined)
-    - `community_leaderboard`: VIEW for easy ranking queries
-  - **New Components**:
-    - `Leaderboard.js`: Displays community members ranked by points
-    - `ChallengeModal.js`: Modal to select habit and send challenges
-    - `ChallengeReceivedModal.js`: Modal for receiving & responding to challenges
-  - **Updated Community Page**:
-    - Click any joined community to view leaderboard
-    - Challenge button appears next to each member
-    - Pending challenge notification badge
-    - Automatic polling for new challenges (5-second interval)
+- **2025-12-01 Real-Time Challenge System with Button States**:
+  - **Real-Time Subscriptions** (Supabase v2+ API):
+    - Replaced polling with Supabase RealtimeChannels
+    - Instant notifications - no page refresh needed
+    - Live challenge status updates across all users
+  - **Challenge Button States**:
+    - **Default**: "Challenge" - Send a new challenge
+    - **⏳ Pending**: Grayed out when challenge sent, waiting for response
+    - **👁️ View**: Green button when challenge accepted, view shared challenge details
+  - **New Features**:
+    - `ViewChallengeModal.js`: Shows accepted challenge details for both users
+    - `useChallenges.js` hook: Manages real-time challenge subscriptions
+    - Real-time leaderboard updates
+    - Auto-display received challenges without refresh
   - **Challenge Flow**:
-    - Send challenge → Select habit → Challenger receives notification
-    - Receive modal shows challenger name and habit to complete
-    - Accept/Decline buttons to respond
-    - +25 points awarded on completion
-  - Status: ✅ Production Ready - Full bidirectional challenge system live
+    1. User A sends challenge → Button shows "⏳ Pending"
+    2. User B receives notification instantly → Modal auto-appears
+    3. User B accepts → Both see "👁️ View" button
+    4. Click View → See shared challenge details with both profiles
+    5. When user completes habit: Both earn 25 points
+  - **Technical**:
+    - Enabled Realtime on `challenges` table in Supabase
+    - Using `supabase.channel()` with `postgres_changes` event listeners
+    - Real-time updates work across browser sessions
+  - Status: ✅ Production Ready - Real-time challenge system live
 
 ## Known Issues & Limitations
 - Web Audio API requires browser to have audio output available

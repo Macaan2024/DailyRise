@@ -1,0 +1,26 @@
+ERROR
+_lib_supabaseClient__WEBPACK_IMPORTED_MODULE_1__.supabase.from(...).on is not a function
+TypeError: _lib_supabaseClient__WEBPACK_IMPORTED_MODULE_1__.supabase.from(...).on is not a function
+    at https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:59253:98
+    at Object.react_stack_bottom_frame (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:33990:18)
+    at runWithFiberInDEV (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:21277:68)
+    at commitHookEffectListMount (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:27281:157)
+    at commitHookPassiveMountEffects (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:27318:56)
+    at commitPassiveMountOnFiber (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:28332:25)
+    at recursivelyTraversePassiveMountEffects (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:28315:7)
+    at commitPassiveMountOnFiber (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:28331:9)
+    at recursivelyTraversePassiveMountEffects (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:28315:7)
+    at commitPassiveMountOnFiber (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:28389:9)
+ERROR
+_lib_supabaseClient__WEBPACK_IMPORTED_MODULE_1__.supabase.from(...).on is not a function
+TypeError: _lib_supabaseClient__WEBPACK_IMPORTED_MODULE_1__.supabase.from(...).on is not a function
+    at https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:59253:98
+    at Object.react_stack_bottom_frame (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:33990:18)
+    at runWithFiberInDEV (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:21277:68)
+    at commitHookEffectListMount (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:27281:157)
+    at commitHookPassiveMountEffects (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:27318:56)
+    at reconnectPassiveEffects (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:28422:9)
+    at recursivelyTraverseReconnectPassiveEffects (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:28405:7)
+    at reconnectPassiveEffects (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:28421:9)
+    at recursivelyTraverseReconnectPassiveEffects (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:28405:7)
+    at reconnectPassiveEffects (https://f9c9e498-03ce-4744-9a5b-81a4e658ae2d-00-2ph7t3zqk7l9a.pike.replit.dev/static/js/bundle.js:28436:9)

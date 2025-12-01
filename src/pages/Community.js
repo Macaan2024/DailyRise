@@ -7,7 +7,6 @@ import Leaderboard from '../components/Leaderboard';
 import ChallengeModal from '../components/ChallengeModal';
 import ChallengeReceivedModal from '../components/ChallengeReceivedModal';
 import ViewChallengeModal from '../components/ViewChallengeModal';
-import { useChallenges } from '../hooks/useChallenges';
 import Swal from 'sweetalert2';
 
 const Community = () => {
@@ -28,7 +27,6 @@ const Community = () => {
   const [selectedChallengeId, setSelectedChallengeId] = useState(null);
   const [showViewChallengeModal, setShowViewChallengeModal] = useState(false);
   const [viewChallengeId, setViewChallengeId] = useState(null);
-  const { receivedChallenges, setReceivedChallenges } = useChallenges(user?.id, selectedCommunity);
 
   useEffect(() => {
     if (user) {
@@ -60,14 +58,21 @@ const Community = () => {
 
   const subscribeToReceivedChallenges = () => {
     try {
-      const subscription = supabase
-        .from('challenges')
-        .on('INSERT', (payload) => {
+      const channel = supabase.channel(`challenges-${user.id}`)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'challenges'
+        }, (payload) => {
           if (payload.new?.challenged_user_id === user.id && payload.new.status === 'pending') {
             setPendingChallenges(prev => [payload.new, ...prev]);
           }
         })
-        .on('UPDATE', (payload) => {
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'challenges'
+        }, (payload) => {
           if (payload.new?.challenged_user_id === user.id) {
             if (payload.new.status === 'pending') {
               setPendingChallenges(prev => {
@@ -82,7 +87,7 @@ const Community = () => {
         })
         .subscribe();
 
-      return () => subscription.unsubscribe();
+      return () => channel.unsubscribe();
     } catch (error) {
       console.error('Error subscribing to challenges:', error);
     }
@@ -158,20 +163,23 @@ const Community = () => {
     setShowChallengeModal(true);
   };
 
-  const handleViewChallenge = (userId) => {
-    // Find the completed/accepted challenge for this user
-    const { data: challenges } = supabase
-      .from('challenges')
-      .select('id')
-      .eq('challenger_id', user.id)
-      .eq('challenged_user_id', userId)
-      .eq('status', 'completed')
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          setViewChallengeId(data[0].id);
-          setShowViewChallengeModal(true);
-        }
-      });
+  const handleViewChallenge = async (userId) => {
+    try {
+      const { data } = await supabase
+        .from('challenges')
+        .select('id')
+        .eq('challenger_id', user.id)
+        .eq('challenged_user_id', userId)
+        .eq('status', 'completed')
+        .single();
+
+      if (data) {
+        setViewChallengeId(data.id);
+        setShowViewChallengeModal(true);
+      }
+    } catch (error) {
+      console.error('Error finding challenge:', error);
+    }
   };
 
   const handleChallengeRespond = () => {
@@ -205,6 +213,7 @@ const Community = () => {
             <Leaderboard 
               communityId={selectedCommunity} 
               onChallenge={handleChallenge}
+              onViewChallenge={handleViewChallenge}
             />
           </div>
         ) : (
@@ -258,12 +267,15 @@ const Community = () => {
         challengeId={selectedChallengeId}
         onClose={() => {
           setShowChallengeReceivedModal(false);
-          // Check if there are more pending challenges
-          setTimeout(() => {
-            fetchPendingChallenges();
-          }, 500);
+          setSelectedChallengeId(null);
         }}
         onRespond={handleChallengeRespond}
+      />
+
+      <ViewChallengeModal
+        isOpen={showViewChallengeModal}
+        challengeId={viewChallengeId}
+        onClose={() => setShowViewChallengeModal(false)}
       />
     </Layout>
   );

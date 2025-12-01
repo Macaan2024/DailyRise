@@ -14,16 +14,19 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
       fetchLeaderboard();
       
       // Subscribe to real-time leaderboard updates
-      const subscription = supabase
-        .from('community_leaderboard')
-        .on('*', (payload) => {
+      const channel = supabase.channel(`leaderboard-${communityId}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'community_leaderboard'
+        }, (payload) => {
           if (payload.new?.community_id === communityId) {
             fetchLeaderboard();
           }
         })
         .subscribe();
 
-      return () => subscription.unsubscribe();
+      return () => channel.unsubscribe();
     }
   }, [communityId]);
 

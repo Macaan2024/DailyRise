@@ -11,10 +11,14 @@ export const useChallenges = (userId, communityId) => {
     // Fetch initial sent challenges
     fetchSentChallenges();
 
-    // Subscribe to sent challenges changes
-    const sentSub = supabase
-      .from('challenges')
-      .on('*', (payload) => {
+    // Subscribe to sent challenges changes (using new RealtimeChannel API)
+    const sentChannel = supabase.channel(`sent-challenges-${userId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'challenges',
+        filter: `challenger_id=eq.${userId}`
+      }, (payload) => {
         if (payload.new?.challenger_id === userId) {
           setSentChallenges(prev => ({
             ...prev,
@@ -25,9 +29,13 @@ export const useChallenges = (userId, communityId) => {
       .subscribe();
 
     // Subscribe to received challenges changes
-    const receivedSub = supabase
-      .from('challenges')
-      .on('*', (payload) => {
+    const receivedChannel = supabase.channel(`received-challenges-${userId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'challenges',
+        filter: `challenged_user_id=eq.${userId}`
+      }, (payload) => {
         if (payload.new?.challenged_user_id === userId) {
           if (payload.new.status === 'pending') {
             setReceivedChallenges(prev => {
@@ -45,8 +53,8 @@ export const useChallenges = (userId, communityId) => {
       .subscribe();
 
     return () => {
-      sentSub.unsubscribe();
-      receivedSub.unsubscribe();
+      sentChannel.unsubscribe();
+      receivedChannel.unsubscribe();
     };
   }, [userId]);
 
