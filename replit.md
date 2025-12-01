@@ -73,10 +73,11 @@ src/
 1. **Authentication**: Login, Register, Forgot Password with custom users table and SweetAlert validation
 2. **Home Dashboard**: 
    - Tagline: "Level up your life, every single day"
-   - 3 Unique Features/Highlights:
+   - 4 Unique Features/Highlights:
      - 🏆 **Gamified Progress**: Auto-earn badges as you complete habits (shows earned badge count)
      - ⚡ **Set & Achieve Goals**: Connect habits with personal goals (shows goal count)
      - 📊 **Smart Insights**: Detailed analytics & trends with calendar view
+     - 👥 **Community Accountability**: Join groups and build habits together (shows groups joined count)
    - Daily habit list with progress tracking, create new or select existing habits
    - Today's progress circular indicator
 3. **Progress**: 
@@ -133,6 +134,7 @@ src/
 - 🏆 Gamified Progress → Links to Badges page
 - ⚡ Set & Achieve Goals → Links to Goals page
 - 📊 Smart Insights → Links to Progress page
+- 👥 Community Accountability → Links to Community page
 
 ## Alarm Sounds
 - 🔔 Classic Beep: 800Hz tone
@@ -161,11 +163,13 @@ The "React App" workflow runs `npm start` on port 5000.
 - Output: `build/`
 
 ## Recent Changes
-- **2025-12-01 Final UI Polish**: 
+- **2025-12-01 Final UI & Community Highlight**: 
+  - Added Community feature to homepage highlights (4 unique features total)
   - Added edit button to Goals page (change goal details anytime)
   - Reduced bottom navigation to 4 core items (Home, Progress, Logs, Alerts)
-  - Moved Goals, Badges, Community to homepage feature cards (still accessible via clickable cards)
-  - Homepage now displays 3 unique features as entry points to advanced features
+  - Moved Goals, Badges, Community to homepage feature cards with counts
+  - Homepage now displays 4 unique features as entry points to advanced features
+  - Community count shows how many groups user has joined
   - Cleaner navigation with focus on core habit tracking workflow
 
 ## Known Issues & Limitations

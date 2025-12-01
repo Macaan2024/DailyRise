@@ -20,6 +20,7 @@ const Home = () => {
   const [editHabit, setEditHabit] = useState(null);
   const [goalsCount, setGoalsCount] = useState(0);
   const [badgesCount, setBadgesCount] = useState(0);
+  const [communityCount, setCommunityCount] = useState(0);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -77,8 +78,14 @@ const Home = () => {
         .select('*')
         .eq('user_id', user.id);
 
+      const { data: communitiesData } = await supabase
+        .from('community_members')
+        .select('*')
+        .eq('user_id', user.id);
+
       setGoalsCount(goalsData?.length || 0);
       setBadgesCount(badgesData?.length || 0);
+      setCommunityCount(communitiesData?.length || 0);
     } catch (error) {
       console.error('Error fetching goals and badges:', error);
     }
@@ -295,7 +302,7 @@ const Home = () => {
           {/* Feature 3: Smart Insights */}
           <div 
             onClick={() => navigate('/progress')}
-            className="card mb-6 cursor-pointer hover:shadow-md transition-shadow"
+            className="card mb-3 cursor-pointer hover:shadow-md transition-shadow"
           >
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -305,6 +312,23 @@ const Home = () => {
                 <p className="text-body font-medium text-dark">Smart Insights</p>
                 <p className="text-xs text-gray-500 mt-1">Detailed analytics & trends for your habits</p>
                 <p className="text-xs text-primary font-medium mt-2">View your progress calendar</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature 4: Community Accountability */}
+          <div 
+            onClick={() => navigate('/community')}
+            className="card mb-6 cursor-pointer hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-lg">👥</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-body font-medium text-dark">Community Accountability</p>
+                <p className="text-xs text-gray-500 mt-1">Join groups and build habits together</p>
+                <p className="text-xs text-primary font-medium mt-2">{communityCount} Group{communityCount !== 1 ? 's' : ''} Joined</p>
               </div>
             </div>
           </div>
