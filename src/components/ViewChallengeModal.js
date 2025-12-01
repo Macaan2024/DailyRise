@@ -22,12 +22,12 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
           created_at,
           completed_at,
           challenger_id,
-          challengee_id,
+          challenged_user_id,
           habit_id,
           community_id,
           habits:habit_id (name),
           challenger:challenger_id (firstname, lastname, image, age, gender),
-          challengee:challengee_id (firstname, lastname, image, age, gender)
+          challengee:challenged_user_id (firstname, lastname, image, age, gender)
         `)
         .eq('id', challengeId)
         .single();

@@ -16,13 +16,13 @@ export const useChallenges = (userId, communityId) => {
     try {
       const { data } = await supabase
         .from('challenges')
-        .select('challengee_id, status')
+        .select('challenged_user_id, status')
         .eq('challenger_id', userId)
         .neq('status', 'declined');
 
       const map = {};
       data?.forEach(c => {
-        map[c.challengee_id] = c.status;
+        map[c.challenged_user_id] = c.status;
       });
       setSentChallenges(map);
     } catch (error) {
