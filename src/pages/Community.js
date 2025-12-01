@@ -143,31 +143,38 @@ const Community = () => {
 
   const handleViewChallenge = async (userId) => {
     try {
+      console.log('🔍 handleViewChallenge called with userId:', userId, 'current user:', user.id);
+      
       // Try to find challenge where user is challenger
       let { data } = await supabase
         .from('challenges')
-        .select('id')
+        .select('*')
         .eq('challenger_id', user.id)
         .eq('challenged_user_id', userId)
         .neq('status', 'declined')
         .maybeSingle();
 
+      console.log('📋 Challenge as challenger:', data);
+
       // If not found, try where user is challenged_user
       if (!data) {
         const result = await supabase
           .from('challenges')
-          .select('id')
+          .select('*')
           .eq('challenger_id', userId)
           .eq('challenged_user_id', user.id)
           .neq('status', 'declined')
           .maybeSingle();
         data = result.data;
+        console.log('📋 Challenge as challenged_user:', data);
       }
 
       if (data) {
+        console.log('✅ Challenge found! ID:', data.id, 'Status:', data.status);
         setViewChallengeId(data.id);
         setShowViewChallengeModal(true);
       } else {
+        console.log('❌ No challenge found');
         Swal.fire({
           icon: 'warning',
           title: 'Not Found',
