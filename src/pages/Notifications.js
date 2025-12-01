@@ -26,6 +26,8 @@ const Notifications = () => {
   const [alarmCountdown, setAlarmCountdown] = useState(0);
   const [currentAlarmReminder, setCurrentAlarmReminder] = useState(null);
   const [alarmIntervalId, setAlarmIntervalId] = useState(null);
+  const [isPrefilledChallenge, setIsPrefilledChallenge] = useState(false);
+  const [prefilledHabitName, setPrefilledHabitName] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -42,6 +44,12 @@ const Notifications = () => {
       const data = JSON.parse(prefilled);
       setSelectedHabit(data.habitId?.toString() || '');
       setReminderTime(data.reminderTime || '09:00');
+      setIsPrefilledChallenge(true);
+      
+      // Get the habit name
+      const habit = habits.find(h => h.id === data.habitId);
+      setPrefilledHabitName(habit?.name || 'Unknown Habit');
+      
       setShowAddModal(true);
       localStorage.removeItem('prefillReminder');
     }
@@ -101,6 +109,8 @@ const Notifications = () => {
     setSelectedHabit('');
     setReminderTime('09:00');
     setSelectedAlarm('beep');
+    setIsPrefilledChallenge(false);
+    setPrefilledHabitName('');
 
     scheduleNotification(newReminder);
   };
@@ -402,17 +412,23 @@ const Notifications = () => {
             <div className="flex-1 overflow-y-auto px-6 py-4">
               <div className="space-y-6">
                 <div>
-                  <label className="block text-body text-gray-600 mb-3 font-medium">Select Habit</label>
-                  <select
-                    value={selectedHabit}
-                    onChange={(e) => setSelectedHabit(e.target.value)}
-                    className="input-field w-full"
-                  >
-                    <option value="">Choose a habit...</option>
-                    {habits.map((habit) => (
-                      <option key={habit.id} value={habit.id}>{habit.name}</option>
-                    ))}
-                  </select>
+                  <label className="block text-body text-gray-600 mb-3 font-medium">Habit</label>
+                  {isPrefilledChallenge ? (
+                    <div className="input-field w-full bg-gray-100 text-gray-700 font-medium cursor-not-allowed">
+                      {prefilledHabitName}
+                    </div>
+                  ) : (
+                    <select
+                      value={selectedHabit}
+                      onChange={(e) => setSelectedHabit(e.target.value)}
+                      className="input-field w-full"
+                    >
+                      <option value="">Choose a habit...</option>
+                      {habits.map((habit) => (
+                        <option key={habit.id} value={habit.id}>{habit.name}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 <div>
@@ -420,8 +436,9 @@ const Notifications = () => {
                   <input
                     type="time"
                     value={reminderTime}
-                    onChange={(e) => setReminderTime(e.target.value)}
-                    className="input-field w-full"
+                    onChange={(e) => !isPrefilledChallenge && setReminderTime(e.target.value)}
+                    disabled={isPrefilledChallenge}
+                    className={`input-field w-full ${isPrefilledChallenge ? 'bg-gray-100 text-gray-700 cursor-not-allowed' : ''}`}
                   />
                 </div>
 
@@ -459,9 +476,9 @@ const Notifications = () => {
               <button
                 onClick={addReminder}
                 disabled={!selectedHabit}
-                className="btn-primary w-full py-3 rounded-lg font-medium text-white"
+                className={`btn-primary w-full py-3 rounded-lg font-medium text-white ${!selectedHabit ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                Add Reminder
+                {isPrefilledChallenge ? 'Set Alarm & Add Reminder' : 'Add Reminder'}
               </button>
               <button
                 onClick={() => setShowAddModal(false)}
