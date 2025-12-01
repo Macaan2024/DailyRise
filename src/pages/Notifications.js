@@ -153,6 +153,13 @@ const Notifications = () => {
   };
 
   const stopAlarm = () => {
+    // Add 10 points when user clicks STOP button
+    if (user && currentAlarmReminder) {
+      const currentPoints = parseInt(localStorage.getItem(`user_points_${user.id}`) || '0');
+      const newPoints = currentPoints + 10;
+      localStorage.setItem(`user_points_${user.id}`, newPoints.toString());
+    }
+    
     setIsAlarmRinging(false);
     setCurrentAlarmReminder(null);
     if (alarmIntervalId) {
@@ -170,6 +177,7 @@ const Notifications = () => {
     } else if (isAlarmRinging && alarmCountdown === 0) {
       stopAlarm();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAlarmRinging, alarmCountdown]);
 
   const scheduleNotification = (reminder) => {

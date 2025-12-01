@@ -7,7 +7,6 @@ import Header from '../components/Header';
 import HabitCard from '../components/HabitCard';
 import AddHabitModal from '../components/AddHabitModal';
 import SelectHabitModal from '../components/SelectHabitModal';
-import { checkAndAwardBadges } from '../utils/badgeHelper';
 
 const Home = () => {
   const { user } = useAuth();
@@ -107,80 +106,6 @@ const Home = () => {
     }
   };
 
-  const updateUserPoints = (pointsChange) => {
-    const currentPoints = parseInt(localStorage.getItem(`user_points_${user.id}`) || '0');
-    const newPoints = Math.max(0, currentPoints + pointsChange);
-    localStorage.setItem(`user_points_${user.id}`, newPoints.toString());
-    setUserPoints(newPoints);
-  };
-
-  const handleToggleHabit = async (habitId, currentStatus) => {
-    try {
-      const existingLog = todayLogs[habitId];
-      let newStatus;
-      let pointsChange = 0;
-
-      if (!existingLog) {
-        newStatus = 'done';
-        pointsChange = 10;
-      } else if (currentStatus === 'done') {
-        newStatus = 'missed';
-        pointsChange = -10;
-      } else if (currentStatus === 'missed') {
-        newStatus = null;
-        pointsChange = 0;
-      } else {
-        newStatus = 'done';
-        pointsChange = 10;
-      }
-
-      if (newStatus === null && existingLog) {
-        const wasCompleted = existingLog.status === 'done';
-        await supabase
-          .from('habit_logs')
-          .delete()
-          .eq('id', existingLog.id);
-
-        const newLogs = { ...todayLogs };
-        delete newLogs[habitId];
-        setTodayLogs(newLogs);
-        
-        if (wasCompleted) {
-          updateUserPoints(-10);
-        }
-      } else if (existingLog) {
-        const wasCompleted = existingLog.status === 'done';
-        const { data, error } = await supabase
-          .from('habit_logs')
-          .update({ status: newStatus })
-          .eq('id', existingLog.id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        setTodayLogs({ ...todayLogs, [habitId]: data });
-        updateUserPoints(pointsChange);
-      } else {
-        const { data, error } = await supabase
-          .from('habit_logs')
-          .insert([{ habit_id: habitId, log_date: today, status: newStatus }])
-          .select()
-          .single();
-
-        if (error) throw error;
-        setTodayLogs({ ...todayLogs, [habitId]: data });
-        updateUserPoints(pointsChange);
-        
-        // Check and award badges after marking habit as done
-        if (newStatus === 'done') {
-          checkAndAwardBadges(user.id);
-          setTimeout(() => fetchGoalsAndBadges(), 500);
-        }
-      }
-    } catch (error) {
-      console.error('Error toggling habit:', error);
-    }
-  };
 
   const handleAddHabit = async (habitData) => {
     try {
@@ -408,8 +333,6 @@ const Home = () => {
               <HabitCard
                 key={habit.id}
                 habit={habit}
-                log={todayLogs[habit.id]}
-                onToggle={() => handleToggleHabit(habit.id, todayLogs[habit.id]?.status)}
                 onEdit={() => {
                   setEditHabit(habit);
                   setShowAddModal(true);

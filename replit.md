@@ -182,12 +182,13 @@ The "React App" workflow runs `npm start` on port 5000.
 - Output: `build/`
 
 ## Recent Changes
-- **2025-12-01 Complete Points & Rewards System**: 
-  - Fixed community creation error (description now optional with default)
-  - Added 4 dashboard stat cards: Today's Progress, Badges Earned, Points, Communities
-  - **Dynamic Points System**: +10 when marking habit as done, -10 when unchecking
-  - Points toggle up and down based on user actions (not static calculation)
+- **2025-12-01 Points System via Reminders Only**:
+  - **REMOVED** check/X buttons from dashboard habits (read-only display only)
+  - **Reminders-Only Points**: Users earn +10 points ONLY when clicking STOP button on reminders
+  - Dashboard habits are display-only - no interactive toggles
+  - If user misses reminder: NO points earned
   - Points persist in localStorage per user session
+  - HabitCard component simplified to display-only with edit button
   - Created Rewards page with claimable badges (Bronze/Silver/Gold/Diamond)
   - Added physical rewards: T-Shirt, Hoodie, Trophy
   - Rewards accessible via new bottom nav item
