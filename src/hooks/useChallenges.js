@@ -10,6 +10,7 @@ export const useChallenges = (userId, communityId) => {
 
     // Fetch initial sent challenges
     fetchSentChallenges();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const fetchSentChallenges = async () => {

@@ -14,6 +14,7 @@ const ChallengeModal = ({ isOpen, communityId, challengedUserId, onClose, onSucc
     if (isOpen && user) {
       fetchUserHabits();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, user]);
 
   const fetchUserHabits = async () => {

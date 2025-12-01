@@ -11,6 +11,7 @@ const ChallengeReceivedModal = ({ isOpen, challengeId, onClose, onRespond }) => 
     if (isOpen && challengeId) {
       fetchChallenge();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, challengeId]);
 
   const fetchChallenge = async () => {

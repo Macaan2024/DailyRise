@@ -1,0 +1,181 @@
+The Netlify deploy errored, with the following guidance provided:
+
+Diagnosis
+
+- The build fails because ESLint errors/warnings are treated as errors in CI ([line 79](#L79)), causing react-scripts build to abort: "Failed to compile" ([line 82](#L82)) and the build command exits with code 1 ([line 112](#L112)).
+- The logs show specific ESLint complaints: missing dependencies in React useEffect hooks and unused variables:
+  - useEffect missing dependency 'fetchUserHabits' in src/components/ChallengeModal.js ([line 86](#L86))
+  - useEffect missing dependency 'fetchChallenge' in src/components/ChallengeReceivedModal.js ([line 88](#L88))
+  - useEffect missing dependencies 'fetchLeaderboard' and 'fetchSentChallenges' in src/components/Leaderboard.js ([line 90](#L90))
+  - useEffect missing dependency 'fetchHabits' in src/components/SelectHabitModal.js ([line 92](#L92))
+  - another missing dependency 'fetchData' shown in the logs ([line 98](#L98))
+  - unused variables in src/pages/Progress.js: doneHabits, missedHabits, notLoggedHabits and an unused getFormattedSelectedDate ([lines 100–103](#L100-L103))
+  - unused variable / useEffect dependency in src/pages/Rewards.js ([line 106](#L106))
+
+Cause: react-scripts enforces ESLint during production builds and Netlify/most CI sets CI=true, so ESLint warnings (missing deps / unused vars) are treated as build-breaking errors.
+
+Solution
+
+1) Reproduce locally
+- Run the same check locally to see the exact failures:
+  - On macOS/Linux:
+    ```bash
+    CI=true npm run build
+    ```
+  - This will show the same ESLint errors so you can iterate quickly.
+
+2) Fix the root issues in code (recommended)
+- For each "React Hook useEffect has a missing dependency" warning, either:
+  - Include the missing dependency in the effect dependency array:
+    ```jsx
+    // src/components/ChallengeModal.js
+    useEffect(() => {
+      fetchUserHabits();
+    }, [fetchUserHabits]);
+    ```
+  - Or, make the function stable (wrap it with useCallback in the provider/parent or the same component) so including it in dependencies is safe:
+    ```jsx
+    const fetchUserHabits = useCallback(() => { ... }, [/* base deps */]);
+    useEffect(() => { fetchUserHabits(); }, [fetchUserHabits]);
+    ```
+  - If the function is intentionally stable / you deliberately don't want it in deps, add an explicit rule suppression with a comment (only use when you fully understand implications):
+    ```jsx
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => { fetchUserHabits(); }, []);
+    ```
+- For "assigned a value but never used" warnings (no-unused-vars), remove or use the variables:
+  - Remove the unused variables:
+    ```jsx
+    // before
+    const [doneHabits, missedHabits, notLoggedHabits] = compute();
+    // after (if you don't need them)
+    compute();
+    ```
+  - Or if you need them later, prefix with underscore to indicate intentional unused:
+    ```jsx
+    const [_doneHabits, _missedHabits] = compute();
+    ```
+  - Or use them in UI/logic if they were accidentally omitted.
+
+3) Quick temporary workaround (not recommended for long term)
+- If you need to get a deploy while you fix lint errors, set CI=false for the Netlify build environment to prevent warnings being treated as errors. Prefer fixing the code instead.
+  - In netlify.toml:
+    ```toml
+    [build.environment]
+      CI = "false"
+    ```
+  - Or set the CI environment variable to false in Netlify UI (Site settings → Build & deploy → Environment).
+- Note: This only suppresses the build-blocking behavior; it does NOT fix the underlying issues.
+
+4) Verify and redeploy
+- After making code fixes, run locally:
+  ```bash
+  CI=true npm run build
+  ```
+  Ensure it succeeds, commit your changes, push to repo, and trigger a Netlify deploy.
+
+Summary checklist
+- [ ] Run CI=true npm run build locally to view all ESLint failures.
+- [ ] Add missing dependencies to useEffect or make callbacks stable with useCallback.
+- [ ] Remove or use variables flagged as unused.
+- [ ] Commit fixes and redeploy.
+- [ ] (Optional temporary) Set CI="false" in Netlify only if you must bypass the check while fixing code.
+
+References
+- Netlify build behavior note: Netlify sets CI=true by default so eslint warnings can fail builds ([line 79](#L79)).
+
+The relevant error logs are:
+
+Line 0: build-image version: cc7730f6f332688234781c0852e824dedc2337ca (noble)
+Line 1: buildbot version: cc7730f6f332688234781c0852e824dedc2337ca
+Line 2: Fetching cached dependencies
+Line 3: Failed to fetch cache, continuing with build
+Line 4: Fetching build zip file
+Line 5: Starting to prepare the repo for build
+Line 6: Custom publish path detected. Proceeding with the specified path: 'build'
+Line 7: Custom build command detected. Proceeding with the specified command: 'npm run build'
+Line 8: Starting to install dependencies
+Line 9: v22.21.1 is already installed.
+Line 10: Now using node v22.21.1 (npm v10.9.4)
+Line 11: Enabling Node.js Corepack
+Line 12: Started restoring cached build plugins
+Line 13: Finished restoring cached build plugins
+Line 19: Installing npm packages using npm version 10.9.4
+Line 20: npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you wa
+Line 21: npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+Line 22: npm warn deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+npm warn deprecated glob@7.2.3: Glo
+Line 23: npm warn deprecated w3c-hr-time@1.0.2: Use your platform's native performance.now() and performance.timeOrigin.
+npm warn depreca
+Line 24: npm warn deprecated rollup-plugin-terser@7.0.2: This package has been deprecated and is no longer maintained. Please use @rollup
+Line 25: npm warn deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
+Line 26: npm warn deprecated q@1.5.1: You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript develo
+Line 27: npm warn deprecated
+Line 28: npm warn deprecated (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
+Line 29: npm warn deprecated domexception@2.0.1: Use your platform's native DOMException instead
+npm warn deprecated workbox-cacheable-re
+Line 30: npm warn deprecated workbox-google-analytics@6.6.0: It is not compatible with newer versions of GA starting with v4, as long as 
+Line 31: npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+Line 32: npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+Line 33: npm warn deprecated @babel/plugin-proposal-optional-chaining@7.21.0: This proposal has been merged to the ECMAScript standard an
+Line 34: npm warn deprecated @babel/plugin-proposal-nullish-coalescing-operator@7.18.6: This proposal has been merged to the ECMAScript s
+Line 35: npm warn deprecated @babel/plugin-proposal-private-methods@7.18.6: This proposal has been merged to the ECMAScript standard and 
+Line 36: npm warn deprecated @babel/plugin-proposal-numeric-separator@7.18.6: This proposal has been merged to the ECMAScript standard an
+Line 37: npm warn deprecated @babel/plugin-proposal-class-properties@7.18.6: This proposal has been merged to the ECMAScript standard and
+Line 38: npm warn deprecated svgo@1.3.2: This SVGO version is no longer supported. Upgrade to v2.x.x.
+Line 39: npm warn deprecated @babel/plugin-proposal-private-property-in-object@7.21.11: This proposal has been merged to the ECMAScript s
+Line 67: [36m[1m❯ Context[22m[39m
+Line 68:   production
+Line 69: [96m[1m​[22m[39m
+Line 70: [96m[1mbuild.command from netlify.toml                               [22m[39m
+Line 71: [96m[1m────────────────────────────────────────────────────────────────[22m[39m
+Line 72: ​
+Line 73: [36m$ npm run build[39m
+Line 74: > dailyrise@0.1.0 build
+Line 75: > react-scripts build
+Line 76: Creating an optimized production build...
+Line 77: Failed during stage 'building site': Build script returned non-zero exit code: 2
+Line 78: [33m[39m
+Line 79: [33mTreating warnings as errors because process.env.CI = true.[39m
+Line 80: [33mMost CI servers set it automatically.[39m
+Line 81: [33m[39m
+Line 82: [31mFailed to compile.[39m
+Line 83: [31m[39m
+Line 84: [eslint]
+Line 85: src/components/ChallengeModal.js
+Line 86:   [1mLine 17:6:[22m  React Hook useEffect has a missing dependency: 'fetchUserHabits'. Either include it or remove the depende
+Line 87: src/components/ChallengeReceivedModal.js
+Line 88:   [1mLine 14:6:[22m  React Hook useEffect has a missing dependency: 'fetchChallenge'. Either include it or remove the dependen
+Line 89: src/components/Leaderboard.js
+Line 90:   [1mLine 43:6:[22m  React Hook useEffect has missing dependencies: 'fetchLeaderboard' and 'fetchSentChallenges'. Either inclu
+Line 91: src/components/SelectHabitModal.js
+Line 92:   [1mLine 12:6:[22m  React Hook useEffect has a missing dependency: 'fetchHabits'. Either include it or remove the dependency 
+Line 98:   [1mLine 36:6:[22m  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency ar
+Line 99: src/pages/Progress.js
+Line 100:   [1mLine 182:17:[22m  'doneHabits' is assigned a value but never used                [33m[4mno-unused-vars[24m[39m
+Line 101:   [1mLine 182:37:[22m  'missedHabits' is assigned a value but never used              [33m[4mno-unused-vars[24m[39m
+Line 102:   [1mLine 182:62:[22m  'notLoggedHabits' is assigned a value but never used           [33m[4mno-unused-vars[24m[39m
+Line 103:   [1mLine 184:9:[22m   'getFormattedSelectedDate' is assigned a value but never used  [33m[4mno-unused-vars[24m[39m
+Line 104: src/pages/Rewards.js
+Line 105:   [1mLine 13:10:[22m  'habits' is assigned a value but never used                                                             
+Line 106:   [1mLine 27:6:[22m   React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency a
+Line 107: [91m[1m​[22m[39m
+Line 108: [91m[1m"build.command" failed                                        [22m[39m
+Line 109: [91m[1m────────────────────────────────────────────────────────────────[22m[39m
+Line 110: ​
+Line 111:   [31m[1mError message[22m[39m
+Line 112:   Command failed with exit code 1: npm run build
+Line 113: ​
+Line 114:   [31m[1mError location[22m[39m
+Line 115:   In build.command from netlify.toml:
+Line 116:   npm run build
+Line 117: ​
+Line 118:   [31m[1mResolved config[22m[39m
+Line 119:   build:
+Line 120:     command: npm run build
+Line 121:     commandOrigin: config
+Line 122:     publish: /opt/build/repo/build
+Line 123:     publishOrigin: config
+Line 124: Build failed due to a user error: Build script returned non-zero exit code: 2
+Line 125: Failing build: Failed to build site
+Line 126: Finished processing build request in 30.715s

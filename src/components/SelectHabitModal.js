@@ -9,6 +9,7 @@ const SelectHabitModal = ({ onClose, onSelect }) => {
 
   useEffect(() => {
     fetchHabits();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchHabits = async () => {

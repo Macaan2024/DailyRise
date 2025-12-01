@@ -10,7 +10,6 @@ const Rewards = () => {
   const [userPoints, setUserPoints] = useState(0);
   const [claimedRewards, setClaimedRewards] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [habits, setHabits] = useState([]);
 
   useEffect(() => {
     if (user) {
@@ -24,16 +23,16 @@ const Rewards = () => {
       window.addEventListener('storage', handleStorageChange);
       return () => window.removeEventListener('storage', handleStorageChange);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchData = async () => {
     try {
-      const { data: habitsData } = await supabase
+      // Fetch habits for context (though not currently displayed)
+      await supabase
         .from('habits')
         .select('*')
         .eq('user_id', user.id);
-
-      setHabits(habitsData || []);
 
       // Get points from localStorage (earned via reminders)
       const savedPoints = localStorage.getItem(`user_points_${user.id}`);

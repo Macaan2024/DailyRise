@@ -151,40 +151,6 @@ const Progress = () => {
     ? Math.round((weeklyStats.completed / weeklyStats.total) * 100) 
     : 0;
 
-  const getSelectedDayHabitsStatus = React.useMemo(() => {
-    const year = currentMonth.getFullYear();
-    const month = String(currentMonth.getMonth() + 1).padStart(2, '0');
-    const day = String(selectedDay).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
-    
-    console.log('Calculating for date:', dateStr);
-    
-    const done = [];
-    const missed = [];
-    const notLogged = [];
-
-    habits.forEach(habit => {
-      const log = logs.find(l => l.habit_id === habit.id && l.log_date === dateStr);
-      console.log(`Habit ${habit.name}: log status = ${log?.status}`);
-      if (log?.status === 'done') {
-        done.push(habit);
-      } else if (log?.status === 'missed') {
-        missed.push(habit);
-      } else {
-        notLogged.push(habit);
-      }
-    });
-
-    console.log('Done:', done.length, 'Missed:', missed.length, 'NotLogged:', notLogged.length);
-    return { done, missed, notLogged };
-  }, [currentMonth, selectedDay, habits, logs]);
-
-  const { done: doneHabits, missed: missedHabits, notLogged: notLoggedHabits } = getSelectedDayHabitsStatus;
-
-  const getFormattedSelectedDate = () => {
-    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDay);
-    return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-  };
 
   return (
     <Layout>

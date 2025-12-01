@@ -40,6 +40,7 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
         channel.unsubscribe();
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [communityId, user?.id]);
 
   const fetchLeaderboard = async () => {
