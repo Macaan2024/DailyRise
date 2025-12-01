@@ -185,15 +185,16 @@ The "React App" workflow runs `npm start` on port 5000.
 - Output: `build/`
 
 ## Recent Changes
-- **2025-12-01 Static Community Display with Demo Members**:
+- **2025-12-01 Complete Community System with Database Members**:
   - **Community Page**: Dropdown selector showing all 5 communities
-  - **Static Demo Members**: Each community displays demo members with points for instant visualization
+  - **Database Members Display**: Real users fetched from database (17 demo users created)
+  - **Member Leaderboard**: Ranked by points from localStorage with user details from database
   - **Challenge System**: Send habit challenges to any community member via modal
-  - **Friend System**: Add users as friends (+ Add / ✓ Friend status)
-  - **Demo Leaderboard**: Members ranked by points for each community
-  - 5 pre-built static communities: Fitness Warriors, Meditation Masters, Reading Circle, Productivity Pros, Health Champions
-  - All database tables ready: community, community_members, challenges, friends
+  - **Friend System**: Add users as friends (pending/accepted status with database tracking)
+  - **5 Pre-built Communities**: Fitness Warriors, Meditation Masters, Reading Circle, Productivity Pros, Health Champions
+  - Each community linked to demo members via community_members table
   - Real-time points synchronization across all pages
+  - All database schema complete with proper foreign keys and constraints
 
 ## Known Issues & Limitations
 - RLS policies use simplified settings (USING true) due to custom authentication limitations

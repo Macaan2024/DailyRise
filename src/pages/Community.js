@@ -8,14 +8,16 @@ import Swal from 'sweetalert2';
 const Community = () => {
   const { user } = useAuth();
   const [selectedCommunityId, setSelectedCommunityId] = useState(1);
+  const [communityMembers, setCommunityMembers] = useState([]);
   const [habits, setHabits] = useState([]);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedHabit, setSelectedHabit] = useState('');
   const [friends, setFriends] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Static Communities Data
-  const communities = [
+  const communities_list = [
     { id: 1, name: 'Fitness Warriors', description: 'Exercise and fitness challenges' },
     { id: 2, name: 'Meditation Masters', description: 'Mindfulness and meditation group' },
     { id: 3, name: 'Reading Circle', description: 'Daily reading habits' },
@@ -23,42 +25,56 @@ const Community = () => {
     { id: 5, name: 'Health Champions', description: 'Health and wellness community' },
   ];
 
-  // Static Community Members Data (Demo Users)
-  const demoMembers = {
-    1: [
-      { userId: 'user-1', name: 'Alex Runner', points: 2450 },
-      { userId: 'user-2', name: 'Jordan Fit', points: 1890 },
-      { userId: 'user-3', name: 'Casey Strong', points: 1650 },
-      { userId: 'user-4', name: 'Morgan Active', points: 1200 },
-    ],
-    2: [
-      { userId: 'user-5', name: 'Sam Zen', points: 3100 },
-      { userId: 'user-6', name: 'Riley Peace', points: 2780 },
-      { userId: 'user-7', name: 'Blake Calm', points: 2340 },
-    ],
-    3: [
-      { userId: 'user-8', name: 'Pages Reader', points: 2650 },
-      { userId: 'user-9', name: 'Story Lover', points: 2120 },
-      { userId: 'user-10', name: 'Book Maven', points: 1950 },
-    ],
-    4: [
-      { userId: 'user-11', name: 'Pro Worker', points: 3450 },
-      { userId: 'user-12', name: 'Hustle Mode', points: 2890 },
-      { userId: 'user-13', name: 'Focus Master', points: 2560 },
-      { userId: 'user-14', name: 'Grind Daily', points: 2100 },
-    ],
-    5: [
-      { userId: 'user-15', name: 'Health Pro', points: 2890 },
-      { userId: 'user-16', name: 'Wellness Max', points: 2450 },
-      { userId: 'user-17', name: 'Life Coach', points: 2200 },
-    ],
-  };
-
   useEffect(() => {
+    fetchCommunityMembers(1);
     fetchHabits();
     fetchFriends();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  useEffect(() => {
+    if (selectedCommunityId) {
+      fetchCommunityMembers(selectedCommunityId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCommunityId]);
+
+  const fetchCommunityMembers = async (communityId) => {
+    try {
+      setLoading(true);
+      // Get community members
+      const { data: members } = await supabase
+        .from('community_members')
+        .select('user_id')
+        .eq('community_id', communityId);
+
+      if (!members || members.length === 0) {
+        setCommunityMembers([]);
+        return;
+      }
+
+      // Get user details
+      const userIds = members.map(m => m.user_id);
+      const { data: userDetails } = await supabase
+        .from('users')
+        .select('id, firstname, lastname')
+        .in('id', userIds);
+
+      // Combine with points from localStorage
+      const membersWithPoints = (userDetails || []).map(user => ({
+        userId: user.id,
+        name: `${user.firstname} ${user.lastname}`,
+        points: parseInt(localStorage.getItem(`user_points_${user.id}`) || '0'),
+      })).sort((a, b) => b.points - a.points);
+
+      setCommunityMembers(membersWithPoints);
+    } catch (error) {
+      console.error('Error fetching community members:', error);
+      setCommunityMembers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchHabits = async () => {
     try {
@@ -165,8 +181,7 @@ const Community = () => {
     }
   };
 
-  const selectedCommunity = communities.find(c => c.id === selectedCommunityId);
-  const communityMembers = demoMembers[selectedCommunityId] || [];
+  const selectedCommunity = communities_list.find(c => c.id === selectedCommunityId);
 
   return (
     <Layout>
@@ -181,7 +196,7 @@ const Community = () => {
             onChange={(e) => setSelectedCommunityId(parseInt(e.target.value))}
             className="input-field w-full"
           >
-            {communities.map((community) => (
+            {communities_list.map((community) => (
               <option key={community.id} value={community.id}>
                 {community.name}
               </option>
@@ -201,7 +216,11 @@ const Community = () => {
               👥 Community Members ({communityMembers.length})
             </h2>
 
-            {communityMembers.length === 0 ? (
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : communityMembers.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-body text-gray-500">No members in this community yet</p>
               </div>
