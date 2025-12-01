@@ -14,6 +14,21 @@ const Goals = () => {
   const [formData, setFormData] = useState({ title: '', target_date: '', habit_id: '' });
   const [editingGoal, setEditingGoal] = useState(null);
 
+  const goalTitleExamples = [
+    'Run 5km without stopping',
+    'Read 50 pages',
+    'Meditate for 30 minutes',
+    'Drink 8 glasses of water',
+    'Complete full workout',
+    'Learn a new skill',
+    'Practice gratitude',
+    'Walk 10,000 steps',
+    'Sleep 8 hours',
+    'No sugar for a week',
+    'Finish project',
+    'Journal for 15 minutes'
+  ];
+
   useEffect(() => {
     if (user) {
       fetchData();
@@ -329,13 +344,16 @@ const Goals = () => {
               <div className="space-y-6">
                 <div>
                   <label className="block text-body text-gray-600 mb-3 font-medium">Goal Title</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Run 5km without stopping"
+                  <select
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="input-field w-full"
-                  />
+                  >
+                    <option value="">Select a goal type...</option>
+                    {goalTitleExamples.map((title) => (
+                      <option key={title} value={title}>{title}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>

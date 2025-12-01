@@ -13,6 +13,22 @@ const Community = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newCommunity, setNewCommunity] = useState({ name: '', description: '' });
 
+  // eslint-disable-next-line no-unused-vars
+  const communityNameExamples = [
+    'Morning Runners',
+    'Study Partners',
+    'Fitness Buddies',
+    'Daily Readers',
+    'Meditation Circle',
+    'Night Owls',
+    'Book Club',
+    'Wellness Warriors',
+    'Tech Enthusiasts',
+    'Yoga Lovers',
+    'Writing Collective',
+    'Cooking Challenge'
+  ];
+
   useEffect(() => {
     if (user) {
       fetchCommunities();
@@ -223,13 +239,16 @@ const Community = () => {
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
               <div>
                 <label className="block text-body text-gray-600 mb-2 font-medium">Community Name</label>
-                <input
-                  type="text"
+                <select
                   value={newCommunity.name}
                   onChange={(e) => setNewCommunity({ ...newCommunity, name: e.target.value })}
-                  placeholder="e.g. Morning Runners"
                   className="input-field w-full"
-                />
+                >
+                  <option value="">Select a community type...</option>
+                  {communityNameExamples.map((name) => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                </select>
               </div>
 
               <div>
