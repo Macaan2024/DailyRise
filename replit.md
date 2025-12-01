@@ -200,10 +200,8 @@ The "React App" workflow runs `npm start` on port 5000.
   - All database schema complete with proper foreign keys and constraints
 
 ## Known Issues & Limitations
-- RLS policies use simplified settings (USING true) due to custom authentication limitations
 - Web Audio API requires browser to have audio output available
 - Reminders use localStorage instead of database for local storage on device
-- Bottom navigation with 7 items may need horizontal scrolling on very small screens
 
 ## Completed Features ✅
 - ✅ Full user authentication system
