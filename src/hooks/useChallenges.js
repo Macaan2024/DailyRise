@@ -22,7 +22,7 @@ export const useChallenges = (userId, communityId) => {
         if (payload.new?.challenger_id === userId) {
           setSentChallenges(prev => ({
             ...prev,
-            [payload.new.challenged_user_id]: payload.new.status
+            [payload.new.challengee_id]: payload.new.status
           }));
         }
       })
@@ -34,9 +34,9 @@ export const useChallenges = (userId, communityId) => {
         event: '*',
         schema: 'public',
         table: 'challenges',
-        filter: `challenged_user_id=eq.${userId}`
+        filter: `challengee_id=eq.${userId}`
       }, (payload) => {
-        if (payload.new?.challenged_user_id === userId) {
+        if (payload.new?.challengee_id === userId) {
           if (payload.new.status === 'pending') {
             setReceivedChallenges(prev => {
               const exists = prev.find(c => c.id === payload.new.id);
@@ -62,13 +62,13 @@ export const useChallenges = (userId, communityId) => {
     try {
       const { data } = await supabase
         .from('challenges')
-        .select('challenged_user_id, status')
+        .select('challengee_id, status')
         .eq('challenger_id', userId)
         .neq('status', 'declined');
 
       const map = {};
       data?.forEach(c => {
-        map[c.challenged_user_id] = c.status;
+        map[c.challengee_id] = c.status;
       });
       setSentChallenges(map);
     } catch (error) {

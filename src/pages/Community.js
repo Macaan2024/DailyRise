@@ -63,10 +63,11 @@ const Community = () => {
         .on('postgres_changes', {
           event: 'INSERT',
           schema: 'public',
-          table: 'challenges'
+          table: 'challenges',
+          filter: `challengee_id=eq.${user.id}`
         }, (payload) => {
           console.log('📨 Challenge INSERT event received:', payload);
-          if (payload.new?.challenged_user_id === user.id && payload.new.status === 'pending') {
+          if (payload.new?.status === 'pending') {
             console.log('✅ New challenge for me! Adding to pending:', payload.new);
             setPendingChallenges(prev => [payload.new, ...prev]);
           }
@@ -74,19 +75,18 @@ const Community = () => {
         .on('postgres_changes', {
           event: 'UPDATE',
           schema: 'public',
-          table: 'challenges'
+          table: 'challenges',
+          filter: `challengee_id=eq.${user.id}`
         }, (payload) => {
           console.log('📨 Challenge UPDATE event received:', payload);
-          if (payload.new?.challenged_user_id === user.id) {
-            if (payload.new.status === 'pending') {
-              setPendingChallenges(prev => {
-                const exists = prev.find(c => c.id === payload.new.id);
-                if (exists) return prev;
-                return [payload.new, ...prev];
-              });
-            } else {
-              setPendingChallenges(prev => prev.filter(c => c.id !== payload.new.id));
-            }
+          if (payload.new.status === 'pending') {
+            setPendingChallenges(prev => {
+              const exists = prev.find(c => c.id === payload.new.id);
+              if (exists) return prev;
+              return [payload.new, ...prev];
+            });
+          } else {
+            setPendingChallenges(prev => prev.filter(c => c.id !== payload.new.id));
           }
         })
         .subscribe((status) => {
@@ -175,7 +175,7 @@ const Community = () => {
         .from('challenges')
         .select('id')
         .eq('challenger_id', user.id)
-        .eq('challenged_user_id', userId)
+        .eq('challengee_id', userId)
         .eq('status', 'completed')
         .single();
 

@@ -22,12 +22,12 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
           created_at,
           completed_at,
           challenger_id,
-          challenged_user_id,
+          challengee_id,
           habit_id,
           community_id,
           habits:habit_id (name),
           challenger:challenger_id (firstname, lastname, image, age, gender),
-          challenged_user:challenged_user_id (firstname, lastname, image, age, gender)
+          challengee:challengee_id (firstname, lastname, image, age, gender)
         `)
         .eq('id', challengeId)
         .single();
@@ -45,13 +45,13 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
   if (!challenge) return null;
 
   const challengerName = `${challenge.challenger?.firstname} ${challenge.challenger?.lastname}`;
-  const challengedName = `${challenge.challenged_user?.firstname} ${challenge.challenged_user?.lastname}`;
+  const challengedName = `${challenge.challengee?.firstname} ${challenge.challengee?.lastname}`;
   const habitName = challenge.habits?.name || 'Unknown Habit';
   const isCompleted = challenge.status === 'completed';
   const challengerImage = challenge.challenger?.image;
-  const challengedImage = challenge.challenged_user?.image;
+  const challengedImage = challenge.challengee?.image;
   const challengerGender = challenge.challenger?.gender || 'N/A';
-  const challengedGender = challenge.challenged_user?.gender || 'N/A';
+  const challengedGender = challenge.challengee?.gender || 'N/A';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">

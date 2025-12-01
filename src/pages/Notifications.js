@@ -169,7 +169,7 @@ const Notifications = () => {
       try {
         const { data: challenges } = await supabase
           .from('challenges')
-          .select('challenger_id, challenged_user_id')
+          .select('challenger_id, challengee_id')
           .eq('habit_id', currentAlarmReminder.habitId)
           .eq('status', 'completed')
           .neq('challenger_id', user.id)
@@ -178,7 +178,7 @@ const Notifications = () => {
         if (challenges) {
           // Award +10 points to the other user as well
           const otherUserId = challenges.challenger_id === user.id 
-            ? challenges.challenged_user_id 
+            ? challenges.challengee_id 
             : challenges.challenger_id;
 
           const otherUserPoints = parseInt(localStorage.getItem(`user_points_${otherUserId}`) || '0');
