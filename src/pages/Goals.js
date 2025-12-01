@@ -52,6 +52,20 @@ const Goals = () => {
       return;
     }
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(formData.target_date);
+    
+    if (selectedDate < today) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Date',
+        text: 'Target date must be today or in the future',
+        confirmButtonColor: '#043915',
+      });
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('goals')
