@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import Layout from '../components/Layout';
 import Header from '../components/Header';
@@ -9,18 +10,22 @@ import SelectHabitModal from '../components/SelectHabitModal';
 
 const Home = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [habits, setHabits] = useState([]);
   const [todayLogs, setTodayLogs] = useState({});
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showSelectModal, setShowSelectModal] = useState(false);
   const [editHabit, setEditHabit] = useState(null);
+  const [goalsCount, setGoalsCount] = useState(0);
+  const [badgesCount, setBadgesCount] = useState(0);
 
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     if (user) {
       fetchHabits();
+      fetchGoalsAndBadges();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -56,6 +61,25 @@ const Home = () => {
       console.error('Error fetching habits:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchGoalsAndBadges = async () => {
+    try {
+      const { data: goalsData } = await supabase
+        .from('goals')
+        .select('*')
+        .eq('user_id', user.id);
+
+      const { data: badgesData } = await supabase
+        .from('user_badges')
+        .select('*')
+        .eq('user_id', user.id);
+
+      setGoalsCount(goalsData?.length || 0);
+      setBadgesCount(badgesData?.length || 0);
+    } catch (error) {
+      console.error('Error fetching goals and badges:', error);
     }
   };
 
@@ -177,6 +201,13 @@ const Home = () => {
       <Header title="Daily Rise" />
       
       <div className="px-4 py-4">
+        {/* Tagline Section */}
+        <div className="bg-gradient-to-r from-primary to-green-700 rounded-xl p-4 mb-6 text-white">
+          <h1 className="text-heading font-poppins font-bold mb-1">Level up your life,</h1>
+          <p className="text-body">every single day</p>
+          <p className="text-xs mt-3 opacity-90">Join thousands building better habits together</p>
+        </div>
+
         <div className="mb-6">
           <p className="text-body text-gray-500">{getDayName()}</p>
           <p className="text-subheading text-dark">{formatDate()}</p>
@@ -212,6 +243,62 @@ const Home = () => {
               <span className="absolute inset-0 flex items-center justify-center text-body font-medium text-dark">
                 {progressPercent}%
               </span>
+            </div>
+          </div>
+        </div>
+
+        {/* DailyRise Highlights */}
+        <div className="mb-6">
+          <h3 className="text-subheading font-poppins text-dark mb-3">What Makes Us Unique</h3>
+          
+          {/* Feature 1: Gamified Progress */}
+          <div 
+            onClick={() => navigate('/badges')}
+            className="card mb-3 cursor-pointer hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-lg">🏆</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-body font-medium text-dark">Gamified Progress</p>
+                <p className="text-xs text-gray-500 mt-1">Earn badges & rewards as you complete habits</p>
+                <p className="text-xs text-primary font-medium mt-2">{badgesCount} Badge{badgesCount !== 1 ? 's' : ''} Earned</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature 2: Goals Setting */}
+          <div 
+            onClick={() => navigate('/goals')}
+            className="card mb-3 cursor-pointer hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-lg">⚡</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-body font-medium text-dark">Set & Achieve Goals</p>
+                <p className="text-xs text-gray-500 mt-1">Connect habits with your personal goals</p>
+                <p className="text-xs text-primary font-medium mt-2">{goalsCount} Goal{goalsCount !== 1 ? 's' : ''} Created</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature 3: Smart Insights */}
+          <div 
+            onClick={() => navigate('/progress')}
+            className="card mb-6 cursor-pointer hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-lg">📊</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-body font-medium text-dark">Smart Insights</p>
+                <p className="text-xs text-gray-500 mt-1">Detailed analytics & trends for your habits</p>
+                <p className="text-xs text-primary font-medium mt-2">View your progress calendar</p>
+              </div>
             </div>
           </div>
         </div>
