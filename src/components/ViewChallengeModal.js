@@ -49,10 +49,19 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
   };
 
   const handleGoChallenge = () => {
+    // Get reminder time from challenge DB or localStorage backup
+    let reminderTime = challenge.reminder_time || '09:00';
+    
+    // Check localStorage for reminder_time backup
+    const reminderTimes = JSON.parse(localStorage.getItem('challenge_reminder_times') || '{}');
+    if (reminderTimes[challenge.id]) {
+      reminderTime = reminderTimes[challenge.id];
+    }
+    
     // Store the habit and reminder time to prefill the Notifications page
     localStorage.setItem('prefillReminder', JSON.stringify({
       habitId: challenge.habit_id,
-      reminderTime: challenge.reminder_time || '09:00'
+      reminderTime: reminderTime
     }));
     // Close modal and navigate to Notifications page
     onClose();

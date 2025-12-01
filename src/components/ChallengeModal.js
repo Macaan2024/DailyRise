@@ -47,18 +47,27 @@ const ChallengeModal = ({ isOpen, communityId, challengedUserId, onClose, onSucc
 
     setLoading(true);
     try {
-      const { error } = await supabase
+      // Insert challenge without reminder_time (work around Supabase cache issue)
+      const { data: challengeData, error } = await supabase
         .from('challenges')
         .insert([{
           challenger_id: user.id,
           challenged_user_id: challengedUserId,
           habit_id: selectedHabit,
           community_id: communityId,
-          status: 'pending',
-          reminder_time: reminderTime
-        }]);
+          status: 'pending'
+        }])
+        .select();
 
       if (error) throw error;
+
+      // Store reminder_time separately in localStorage
+      if (challengeData && challengeData.length > 0) {
+        const challengeId = challengeData[0].id;
+        const reminderTimes = JSON.parse(localStorage.getItem('challenge_reminder_times') || '{}');
+        reminderTimes[challengeId] = reminderTime;
+        localStorage.setItem('challenge_reminder_times', JSON.stringify(reminderTimes));
+      }
 
       Swal.fire({
         icon: 'success',
