@@ -85,7 +85,7 @@ const ChallengeModal = ({ isOpen, communityId, challengedUserId, onClose, onSucc
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end z-50">
-      <div className="bg-white w-full rounded-t-2xl p-6 max-w-md mx-auto">
+      <div className="bg-white w-full rounded-t-2xl p-6 pb-32 max-w-md mx-auto max-h-[80vh] overflow-y-auto">
         <h3 className="text-lg font-semibold text-dark mb-4">🎯 Send Challenge</h3>
 
         <div className="mb-4">
@@ -106,11 +106,11 @@ const ChallengeModal = ({ isOpen, communityId, challengedUserId, onClose, onSucc
           </select>
         </div>
 
-        <p className="text-small text-gray-600 mb-4">
+        <p className="text-small text-gray-600 mb-6">
           Challenge this user to complete this habit. If they succeed, they'll earn 25 points!
         </p>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 sticky bottom-0 bg-white pt-4">
           <button
             onClick={onClose}
             className="flex-1 px-4 py-2 bg-gray-200 text-dark rounded font-medium text-small hover:bg-gray-300"

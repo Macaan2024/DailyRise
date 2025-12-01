@@ -137,17 +137,22 @@ const Community = () => {
             {communities.map((community) => {
               const isJoined = joinedCommunities.includes(community.id);
               return (
-                <div key={community.id} className="card">
+                <div 
+                  key={community.id} 
+                  className={`card ${isJoined ? 'cursor-pointer hover:shadow-md transition' : ''}`}
+                  onClick={() => isJoined && setSelectedCommunity(community.id)}
+                >
                   <div className="flex items-center justify-between">
-                    <div 
-                      className="flex-1 cursor-pointer"
-                      onClick={() => isJoined && setSelectedCommunity(community.id)}
-                    >
+                    <div className="flex-1">
                       <h3 className="text-body font-medium text-dark">{community.name}</h3>
                       <p className="text-small text-gray-500">{community.description}</p>
+                      {isJoined && <p className="text-small text-primary mt-1">👉 Tap to view leaderboard</p>}
                     </div>
                     <button
-                      onClick={() => isJoined ? leaveCommunity(community.id) : joinCommunity(community.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        isJoined ? leaveCommunity(community.id) : joinCommunity(community.id);
+                      }}
                       className={`px-4 py-2 text-xs rounded font-medium whitespace-nowrap ml-3 ${
                         isJoined
                           ? 'bg-red-500 text-white hover:bg-red-600'
