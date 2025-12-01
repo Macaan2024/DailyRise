@@ -33,7 +33,9 @@ src/
 │   ├── Header.js            # Page header
 │   ├── HabitCard.js         # Habit display card
 │   ├── AddHabitModal.js     # Add/edit habit modal
-│   └── SelectHabitModal.js  # Select existing habit modal
+│   ├── SelectHabitModal.js  # Select existing habit modal
+│   ├── Leaderboard.js       # Community leaderboard with rankings
+│   └── ChallengeModal.js    # Challenge modal for sending habit challenges
 ├── contexts/                # React contexts
 │   └── AuthContext.js       # Authentication context
 ├── hooks/                   # Custom hooks
@@ -49,7 +51,7 @@ src/
 │   ├── Notifications.js     # Reminders management with alarms
 │   ├── Goals.js             # Goal creation & management
 │   ├── Badges.js            # Badge display & achievements
-│   ├── Community.js         # Community groups & accountability
+│   ├── Community.js         # Community groups & accountability with leaderboard
 │   └── Profile.js           # User profile settings
 ├── utils/                   # Utility functions
 │   └── badgeHelper.js       # Badge earning logic
@@ -68,6 +70,9 @@ src/
 - **user_badges**: id, earned_at, badge_id, user_id
 - **community**: id, name, description
 - **community_members**: id, joined_at, role, community_id, user_id
+- **user_points**: id, user_id, community_id, total_points, created_at, updated_at
+- **challenges**: id, challenger_id, challenged_user_id, habit_id, community_id, status, completed_at, created_at
+- **community_leaderboard**: VIEW - Ranks users by points in each community
 
 ## Features
 1. **Authentication**: Login, Register, Forgot Password with custom users table and SweetAlert validation
@@ -117,9 +122,16 @@ src/
    - Beautiful badge icons and styling
 8. **Community** (Accountability & Challenges): 
    - **Create & Join Communities**: Build or join accountability groups
-   - **Leaderboard**: See points ranking of all users in same community
-   - **Challenge System**: Send habit challenges to other community members
-   - **Challenge Modal**: Select any of your habits to challenge others
+   - **Community Leaderboard** ⭐:
+     - Click any joined community to view leaderboard
+     - See all members ranked by points (highest to lowest)
+     - Display member name, profile image, and total points
+     - Real-time ranking updates from database
+   - **Challenge System** 🎯:
+     - Click "Challenge" button next to any community member
+     - Select one of your habits to challenge them with
+     - Challenged user earns 25 points if they complete the habit
+     - Track all pending and completed challenges in database
    - Leave communities anytime
    - View all available communities
    - 5 Pre-built Communities: Fitness Warriors, Meditation Masters, Reading Circle, Productivity Pros, Health Champions
@@ -185,17 +197,23 @@ The "React App" workflow runs `npm start` on port 5000.
 - Output: `build/`
 
 ## Recent Changes
-- **2025-12-01 Complete Community Accountability System**:
-  - **Community Page**: Displays all 5 pre-built communities as simple cards
-  - **Join/Leave Buttons**: Toggle community membership with instant feedback
-  - **Database Integration**: 
-    - Saves to `community_members` table on join (community_id, user_id, role='member', joined_at auto-timestamp)
-    - Fetches joined status from database in real-time
-    - Removes membership on leave
-  - **5 Pre-built Communities**: Fitness Warriors, Meditation Masters, Reading Circle, Productivity Pros, Health Champions
-  - **User Experience**: SweetAlert confirmations, real-time status updates
-  - **Fixed RLS Policies**: Enabled proper row-level security on community tables
-  - Status: ✅ Production Ready - Users can now join/leave communities to build accountability
+- **2025-12-01 Leaderboard & Challenge System**:
+  - **Created New Database Tables**:
+    - `user_points`: Tracks points per user per community
+    - `challenges`: Stores habit challenges between users
+    - `community_leaderboard`: VIEW for easy ranking queries
+  - **New Components**:
+    - `Leaderboard.js`: Displays community members ranked by points
+    - `ChallengeModal.js`: Modal to select habit and challenge other users
+  - **Updated Community Page**:
+    - Click any joined community to view leaderboard
+    - Challenge button appears next to each member
+    - Back button to return to communities list
+  - **Features**:
+    - Real-time point tracking and ranking
+    - Habit challenge system with +25 points reward
+    - Database-backed leaderboard
+  - Status: ✅ Production Ready - Full leaderboard and challenge system live
 
 ## Known Issues & Limitations
 - Web Audio API requires browser to have audio output available
@@ -222,6 +240,8 @@ The "React App" workflow runs `npm start` on port 5000.
 - ✅ Community groups and accountability features
 - ✅ Gamified progress tracking (auto-badges)
 - ✅ Clickable Enable button in Alerts
+- ✅ Community Leaderboard with real-time rankings
+- ✅ Challenge System with +25 points rewards
 
 ## DailyRise Unique Value Proposition
 **What makes us different from other habit trackers:**

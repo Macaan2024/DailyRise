@@ -3,6 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import Layout from '../components/Layout';
 import Header from '../components/Header';
+import Leaderboard from '../components/Leaderboard';
+import ChallengeModal from '../components/ChallengeModal';
 import Swal from 'sweetalert2';
 
 const Community = () => {
@@ -15,6 +17,9 @@ const Community = () => {
     { id: 5, name: 'Health Champions', description: 'Health and wellness community' },
   ]);
   const [joinedCommunities, setJoinedCommunities] = useState([]);
+  const [selectedCommunity, setSelectedCommunity] = useState(null);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
+  const [challengedUserId, setChallengedUserId] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -102,18 +107,42 @@ const Community = () => {
     }
   };
 
+  const handleChallenge = (userId) => {
+    setChallengedUserId(userId);
+    setShowChallengeModal(true);
+  };
+
   return (
     <Layout>
       <Header title="Community Accountability" />
       
       <div className="px-4 py-4 pb-32">
-        <div className="space-y-3">
+        {selectedCommunity ? (
+          // Show leaderboard for selected community
+          <div>
+            <button
+              onClick={() => setSelectedCommunity(null)}
+              className="text-primary text-small font-medium mb-4 flex items-center"
+            >
+              ← Back to Communities
+            </button>
+            <Leaderboard 
+              communityId={selectedCommunity} 
+              onChallenge={handleChallenge}
+            />
+          </div>
+        ) : (
+          // Show communities list
+          <div className="space-y-3">
             {communities.map((community) => {
               const isJoined = joinedCommunities.includes(community.id);
               return (
                 <div key={community.id} className="card">
                   <div className="flex items-center justify-between">
-                    <div className="flex-1">
+                    <div 
+                      className="flex-1 cursor-pointer"
+                      onClick={() => isJoined && setSelectedCommunity(community.id)}
+                    >
                       <h3 className="text-body font-medium text-dark">{community.name}</h3>
                       <p className="text-small text-gray-500">{community.description}</p>
                     </div>
@@ -131,8 +160,17 @@ const Community = () => {
                 </div>
               );
             })}
-        </div>
+          </div>
+        )}
       </div>
+
+      <ChallengeModal
+        isOpen={showChallengeModal}
+        communityId={selectedCommunity}
+        challengedUserId={challengedUserId}
+        onClose={() => setShowChallengeModal(false)}
+        onSuccess={() => {}}
+      />
     </Layout>
   );
 };
