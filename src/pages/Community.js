@@ -143,20 +143,46 @@ const Community = () => {
 
   const handleViewChallenge = async (userId) => {
     try {
-      const { data } = await supabase
+      // Try to find challenge where user is challenger
+      let { data } = await supabase
         .from('challenges')
         .select('id')
         .eq('challenger_id', user.id)
         .eq('challenged_user_id', userId)
-        .eq('status', 'completed')
-        .single();
+        .neq('status', 'declined')
+        .maybeSingle();
+
+      // If not found, try where user is challenged_user
+      if (!data) {
+        const result = await supabase
+          .from('challenges')
+          .select('id')
+          .eq('challenger_id', userId)
+          .eq('challenged_user_id', user.id)
+          .neq('status', 'declined')
+          .maybeSingle();
+        data = result.data;
+      }
 
       if (data) {
         setViewChallengeId(data.id);
         setShowViewChallengeModal(true);
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Not Found',
+          text: 'Challenge not found',
+          confirmButtonColor: '#043915',
+        });
       }
     } catch (error) {
       console.error('Error finding challenge:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to view challenge',
+        confirmButtonColor: '#043915',
+      });
     }
   };
 

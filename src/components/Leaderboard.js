@@ -61,16 +61,32 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
 
   const fetchSentChallenges = async () => {
     try {
-      const { data } = await supabase
+      // Fetch challenges where user is challenger
+      const { data: sentData } = await supabase
         .from('challenges')
         .select('challenged_user_id, status')
         .eq('challenger_id', user?.id)
         .neq('status', 'declined');
 
+      // Fetch challenges where user is challenged_user
+      const { data: receivedData } = await supabase
+        .from('challenges')
+        .select('challenger_id, status')
+        .eq('challenged_user_id', user?.id)
+        .neq('status', 'declined');
+
       const map = {};
-      data?.forEach(c => {
+      
+      // Add challenges where user is challenger
+      sentData?.forEach(c => {
         map[c.challenged_user_id] = c.status;
       });
+      
+      // Add challenges where user is challenged_user
+      receivedData?.forEach(c => {
+        map[c.challenger_id] = c.status;
+      });
+      
       setSentChallenges(map);
     } catch (error) {
       console.error('Error fetching sent challenges:', error);
