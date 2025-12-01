@@ -62,64 +62,64 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
   const challengedGender = challenge.challengee?.gender || 'N/A';
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl animate-fade-in">
-        {/* Premium Header - More Elegant */}
-        <div className="relative h-32 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 overflow-hidden">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+      <div className="bg-white rounded-2xl w-full max-w-sm sm:max-w-md lg:max-w-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
+        {/* Premium Header - Responsive */}
+        <div className="relative h-24 sm:h-28 lg:h-32 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 overflow-hidden">
           {/* Decorative Elements */}
-          <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -ml-16 -mb-16"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-primary/10 rounded-full blur-3xl -mr-16 sm:-mr-20 -mt-16 sm:-mt-20"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-primary/5 rounded-full blur-3xl -ml-12 sm:-ml-16 -mb-12 sm:-mb-16"></div>
           
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-all"
+            className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-white/20 hover:bg-white/30 text-white p-1.5 sm:p-2 rounded-full transition-all text-lg sm:text-xl"
           >
             ✕
           </button>
 
-          <div className="relative h-full flex flex-col justify-center items-center px-8">
-            <p className="text-primary/40 text-xs font-semibold uppercase tracking-widest mb-2">Accountability Challenge</p>
-            <h3 className="text-3xl font-bold text-white text-center">⚡ Challenge Battle</h3>
+          <div className="relative h-full flex flex-col justify-center items-center px-4 sm:px-8">
+            <p className="text-primary/40 text-xs font-semibold uppercase tracking-wider mb-1">Accountability Challenge</p>
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white text-center">⚡ Challenge Battle</h3>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="px-8 py-10">
+        {/* Content - Responsive */}
+        <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           {/* Status Section */}
-          <div className="mb-8 flex justify-center">
+          <div className="mb-6 flex justify-center">
             {isCompleted ? (
-              <div className="inline-flex items-center gap-3 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full">
-                <span className="text-lg">✅</span>
-                <p className="text-sm font-semibold text-emerald-700">Challenge Accepted</p>
+              <div className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full text-xs sm:text-sm">
+                <span className="text-base sm:text-lg">✅</span>
+                <p className="font-semibold text-emerald-700">Challenge Accepted</p>
               </div>
             ) : (
-              <div className="inline-flex items-center gap-3 px-4 py-2 bg-amber-50 border border-amber-200 rounded-full">
-                <span className="text-lg">⏳</span>
-                <p className="text-sm font-semibold text-amber-700">Awaiting Response</p>
+              <div className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 bg-amber-50 border border-amber-200 rounded-full text-xs sm:text-sm">
+                <span className="text-base sm:text-lg">⏳</span>
+                <p className="font-semibold text-amber-700">Awaiting Response</p>
               </div>
             )}
           </div>
 
-          {/* User Cards - Elegant Side-by-Side */}
-          <div className="grid grid-cols-2 gap-6 mb-10">
+          {/* User Cards - Responsive Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-10">
             {/* Challenger Card */}
             <div className="group">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-50/50 border border-blue-100/80 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-50/50 border border-blue-100/80 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                 <div className="flex flex-col items-center">
                   {/* Profile Image */}
-                  <div className="relative mb-5">
+                  <div className="relative mb-3 sm:mb-5">
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-cyan-300 blur-lg opacity-25 group-hover:opacity-40 transition-opacity"></div>
                     <img
                       src={challengerImage || 'https://via.placeholder.com/100?text=User'}
                       alt={challengerName}
-                      className="relative w-28 h-28 rounded-full border-4 border-white shadow-lg object-cover"
+                      className="relative w-20 sm:w-24 lg:w-28 h-20 sm:h-24 lg:h-28 rounded-full border-4 border-white shadow-lg object-cover"
                     />
                   </div>
 
                   {/* Info */}
-                  <h4 className="text-lg font-bold text-slate-900 text-center mb-2">{challengerName}</h4>
-                  <div className="flex items-center gap-2 text-sm text-slate-600 mb-3">
+                  <h4 className="text-base sm:text-lg font-bold text-slate-900 text-center mb-2 line-clamp-2">{challengerName}</h4>
+                  <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-slate-600 mb-2 sm:mb-3">
                     <span>👤</span>
                     <span>{challengerGender}</span>
                     <span>•</span>
@@ -127,7 +127,7 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
                   </div>
 
                   {/* Badge */}
-                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">
+                  <span className="inline-flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">
                     🎖️ Challenger
                   </span>
                 </div>
@@ -136,21 +136,21 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
 
             {/* Challenged User Card */}
             <div className="group">
-              <div className="bg-gradient-to-br from-emerald-50 to-emerald-50/50 border border-emerald-100/80 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-50/50 border border-emerald-100/80 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
                 <div className="flex flex-col items-center">
                   {/* Profile Image */}
-                  <div className="relative mb-5">
+                  <div className="relative mb-3 sm:mb-5">
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-400 to-teal-300 blur-lg opacity-25 group-hover:opacity-40 transition-opacity"></div>
                     <img
                       src={challengedImage || 'https://via.placeholder.com/100?text=User'}
                       alt={challengedName}
-                      className="relative w-28 h-28 rounded-full border-4 border-white shadow-lg object-cover"
+                      className="relative w-20 sm:w-24 lg:w-28 h-20 sm:h-24 lg:h-28 rounded-full border-4 border-white shadow-lg object-cover"
                     />
                   </div>
 
                   {/* Info */}
-                  <h4 className="text-lg font-bold text-slate-900 text-center mb-2">{challengedName}</h4>
-                  <div className="flex items-center gap-2 text-sm text-slate-600 mb-3">
+                  <h4 className="text-base sm:text-lg font-bold text-slate-900 text-center mb-2 line-clamp-2">{challengedName}</h4>
+                  <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-slate-600 mb-2 sm:mb-3">
                     <span>👤</span>
                     <span>{challengedGender}</span>
                     <span>•</span>
@@ -158,7 +158,7 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
                   </div>
 
                   {/* Badge */}
-                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">
+                  <span className="inline-flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">
                     🏅 Challenged
                   </span>
                 </div>
@@ -166,60 +166,60 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
             </div>
           </div>
 
-          {/* VS Divider - Elegant */}
-          <div className="flex items-center gap-4 mb-10">
+          {/* VS Divider - Responsive */}
+          <div className="flex items-center gap-3 sm:gap-4 mb-8 sm:mb-10">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
-            <div className="px-4 py-2 bg-slate-100 rounded-full border border-slate-200">
-              <p className="text-sm font-bold text-slate-600">VS</p>
+            <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-100 rounded-full border border-slate-200">
+              <p className="text-xs sm:text-sm font-bold text-slate-600">VS</p>
             </div>
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
           </div>
 
-          {/* Habit Challenge - Premium Box */}
-          <div className="mb-8 p-8 bg-gradient-to-br from-slate-50 to-slate-50/50 border border-slate-200/80 rounded-2xl">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 text-center">Challenge Objective</p>
-            <div className="bg-white border border-slate-100 rounded-xl px-6 py-5 text-center">
-              <p className="text-2xl font-bold text-primary mb-2">"{habitName}"</p>
-              <p className="text-sm text-slate-600 leading-relaxed">
+          {/* Habit Challenge - Responsive */}
+          <div className="mb-6 sm:mb-8 p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-slate-50 to-slate-50/50 border border-slate-200/80 rounded-xl sm:rounded-2xl">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 sm:mb-3 text-center">Challenge Objective</p>
+            <div className="bg-white border border-slate-100 rounded-lg sm:rounded-xl px-4 sm:px-6 py-3 sm:py-5 text-center">
+              <p className="text-lg sm:text-2xl font-bold text-primary mb-1 sm:mb-2 break-words">"{habitName}"</p>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                 Complete this habit together and showcase your commitment to accountability. When either user completes the habit, both earn rewards! 🎯
               </p>
             </div>
           </div>
 
-          {/* Rewards Info - Elegant */}
-          <div className="mb-10 p-6 bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 border border-amber-200/60 rounded-2xl">
-            <div className="flex items-start gap-4">
-              <div className="text-4xl">✨</div>
-              <div className="flex-1">
-                <p className="text-lg font-bold text-slate-900 mb-1">+10 Points Reward</p>
-                <p className="text-sm text-slate-700 leading-relaxed">
+          {/* Rewards Info - Responsive */}
+          <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 border border-amber-200/60 rounded-xl sm:rounded-2xl">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="text-3xl sm:text-4xl flex-shrink-0">✨</div>
+              <div className="flex-1 min-w-0">
+                <p className="text-base sm:text-lg font-bold text-slate-900 mb-1">+10 Points Reward</p>
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
                   Both participants instantly earn <span className="font-semibold">10 points</span> when the challenge is completed. Use these points to unlock badges and climb the leaderboard! 🏆
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Challenge Timeline */}
-          <div className="mb-10 space-y-3">
+          {/* Challenge Timeline - Responsive */}
+          <div className="mb-6 sm:mb-8 space-y-2 sm:space-y-3">
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Timeline</p>
             <div className="space-y-2">
-              <div className="flex items-center gap-3 text-sm text-slate-600">
-                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                <span>Challenge created: {new Date(challenge.created_at).toLocaleDateString()}</span>
+              <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-slate-600">
+                <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"></div>
+                <span className="truncate">Challenge created: {new Date(challenge.created_at).toLocaleDateString()}</span>
               </div>
               {challenge.completed_at && (
-                <div className="flex items-center gap-3 text-sm text-slate-600">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                  <span>Challenge completed: {new Date(challenge.completed_at).toLocaleDateString()}</span>
+                <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-slate-600">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0"></div>
+                  <span className="truncate">Challenge completed: {new Date(challenge.completed_at).toLocaleDateString()}</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Action Button - Premium */}
+          {/* Action Button - Responsive */}
           <button
             onClick={onClose}
-            className="w-full px-6 py-4 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/95 hover:to-primary/85 text-white rounded-xl font-bold text-base transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 transform"
+            className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/95 hover:to-primary/85 text-white rounded-lg sm:rounded-xl font-bold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 transform"
           >
             Got It! Let's Go 💪
           </button>
