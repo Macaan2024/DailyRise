@@ -47,24 +47,66 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
   const challengedName = `${challenge.challenged_user?.firstname} ${challenge.challenged_user?.lastname}`;
   const habitName = challenge.habits?.name || 'Unknown Habit';
   const isCompleted = challenge.status === 'completed';
+  const challengerImage = challenge.challenger?.image;
+  const challengedImage = challenge.challenged_user?.image;
+  const challengerGender = challenge.challenger?.gender || 'N/A';
+  const challengedGender = challenge.challenged_user?.gender || 'N/A';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-sm w-full overflow-hidden">
+      <div className="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
         {/* Header Background */}
-        <div className="bg-gradient-to-r from-primary to-primary/80 h-24"></div>
+        <div className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 h-32"></div>
         
         {/* Content */}
-        <div className="px-6 pb-6 -mt-12 relative">
+        <div className="px-6 pb-6 -mt-16 relative">
           {/* Title */}
-          <h3 className="text-lg font-bold text-dark text-center mb-4">
-            🎯 Active Challenge
+          <h3 className="text-xl font-bold text-dark text-center mb-6">
+            🎯 Challenge Battle
           </h3>
 
-          {/* Challenge Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-            <p className="text-small text-blue-900 mb-3">
-              <span className="font-semibold">{challengerName}</span> challenged <span className="font-semibold">{challengedName}</span> to:
+          {/* Both Users Profiles */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            {/* Challenger Profile */}
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+              <div className="flex flex-col items-center">
+                <img
+                  src={challengerImage || 'https://via.placeholder.com/80?text=User'}
+                  alt={challengerName}
+                  className="w-16 h-16 rounded-full border-3 border-white shadow-lg object-cover mb-2"
+                />
+                <p className="text-xs font-bold text-dark text-center">{challengerName}</p>
+                <p className="text-xs text-gray-600 text-center">👤 {challengerGender}</p>
+                <p className="text-xs text-blue-900 font-semibold mt-1">Challenger</p>
+              </div>
+            </div>
+
+            {/* VS Badge */}
+            <div className="flex items-center justify-center">
+              <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
+                <p className="text-white font-bold text-lg">VS</p>
+              </div>
+            </div>
+
+            {/* Challenged User Profile */}
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+              <div className="flex flex-col items-center">
+                <img
+                  src={challengedImage || 'https://via.placeholder.com/80?text=User'}
+                  alt={challengedName}
+                  className="w-16 h-16 rounded-full border-3 border-white shadow-lg object-cover mb-2"
+                />
+                <p className="text-xs font-bold text-dark text-center">{challengedName}</p>
+                <p className="text-xs text-gray-600 text-center">👤 {challengedGender}</p>
+                <p className="text-xs text-green-900 font-semibold mt-1">Challenged</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Habit Challenge */}
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-4 mb-4">
+            <p className="text-small text-purple-900 text-center mb-2 font-semibold">
+              💪 Complete This Habit:
             </p>
             <p className="text-base font-bold text-primary text-center">
               "{habitName}"
@@ -83,25 +125,28 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
               {isCompleted ? '✅ Challenge Accepted' : '⏳ Challenge Pending'}
             </p>
             {isCompleted && (
-              <p className="text-small text-green-800 text-center mt-1">
-                When either user completes this habit, both earn 25 points!
+              <p className="text-xs text-green-800 text-center mt-2">
+                When either user completes this habit, both earn +10 points!
               </p>
             )}
           </div>
 
           {/* Reward Info */}
-          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-3 mb-5">
-            <p className="text-small text-yellow-900 text-center">
-              ✨ <span className="font-bold">25 Points</span> awarded for completion
+          <div className="bg-gradient-to-br from-yellow-50 via-orange-50 to-yellow-100 border border-yellow-300 rounded-xl p-4 mb-5 shadow-md">
+            <p className="text-small text-yellow-900 text-center font-semibold">
+              ✨ <span className="text-lg">Both Get +10 Points!</span> ✨
+            </p>
+            <p className="text-xs text-yellow-800 text-center mt-2">
+              Complete the habit & click STOP to claim rewards 🏆
             </p>
           </div>
 
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-primary text-white rounded-lg font-medium text-small hover:bg-primary/90 transition"
+            className="w-full px-4 py-3 bg-primary text-white rounded-lg font-bold text-small hover:bg-primary/90 transition shadow-md"
           >
-            Close
+            Got It! Let's Go 💪
           </button>
         </div>
       </div>

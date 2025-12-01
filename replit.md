@@ -1,288 +1,41 @@
 # Daily Rise - Habit Tracking Application
 
 ## Overview
-Daily Rise is a mobile-first habit tracking React application that helps users build and maintain daily habits. It features progress tracking, calendar views, weekly summaries, reminders with selectable audio alarms, user profile management, gamified badges that auto-award on habit completion, community groups for accountability, and goal tracking. **Tagline: "Level up your life, every single day"**
+Daily Rise is a mobile-first React application designed to help users build and maintain daily habits. It offers a comprehensive suite of features including progress tracking, calendar views, weekly summaries, customizable reminders with audio alarms, user profile management, gamified badges, community groups for accountability, and goal setting. The project's vision is to make habit-building an engaging, social, and motivational journey, empowering users to "Level up their life, every single day."
 
-## Tech Stack
-- **Frontend**: React 19.2.0 with Create React App
-- **Styling**: Tailwind CSS 3.4.18
-- **Backend/Database**: Supabase (external)
-- **Routing**: React Router DOM
-- **Package Manager**: npm
-- **Audio**: Web Audio API for customizable alarm sounds
-- **Alerts**: SweetAlert2 for user notifications
+## User Preferences
+I prefer iterative development with clear, concise communication. Please provide detailed explanations for complex solutions and ask for confirmation before implementing major architectural changes. I value clean, readable code and well-documented functions. I prefer modern JavaScript features and functional components in React.
 
-## Design System
-### Colors
-- Primary: #043915 (Dark Green)
-- Dark: #000000 (Black)
-- Light: #ffffff (White)
+## System Architecture
+Daily Rise is built with React 19.2.0, utilizing Tailwind CSS 3.4.18 for styling and React Router DOM for navigation. The application follows a component-based architecture, with reusable UI components, dedicated contexts for state management (e.g., AuthContext), and custom hooks for shared logic.
 
-### Typography
-- Primary Font: Poppins (headings)
-- Secondary Font: Roboto (body text)
-- Heading Size: 14-16px
-- Body Size: 11px
+**UI/UX Decisions:**
+- **Mobile-first design:** Ensures optimal experience on smaller screens.
+- **Color Scheme:** Primary (#043915 - Dark Green), Dark (#000000 - Black), Light (#ffffff - White).
+- **Typography:** Poppins for headings, Roboto for body text.
+- **Navigation:** A consistent bottom navigation bar with 5 key items: Home, Progress, Logs, Alerts, and Rewards.
+- **Notifications:** SweetAlert2 is used for user notifications and validations.
 
-## Project Structure
-```
-src/
-├── components/              # Reusable UI components
-│   ├── Layout.js            # Main layout with bottom nav
-│   ├── BottomNav.js         # Bottom navigation bar (7 items)
-│   ├── Header.js            # Page header
-│   ├── HabitCard.js         # Habit display card
-│   ├── AddHabitModal.js     # Add/edit habit modal
-│   ├── SelectHabitModal.js  # Select existing habit modal
-│   ├── Leaderboard.js       # Community leaderboard with rankings
-│   ├── ChallengeModal.js    # Challenge modal for sending habit challenges
-│   └── ChallengeReceivedModal.js # Modal for accepting/declining challenges
-├── contexts/                # React contexts
-│   └── AuthContext.js       # Authentication context
-├── hooks/                   # Custom hooks
-├── lib/                     # External integrations
-│   └── supabaseClient.js    # Supabase client
-├── pages/                   # Page components
-│   ├── Login.js             # Login page
-│   ├── Register.js          # Registration page
-│   ├── ForgotPassword.js    # Password reset
-│   ├── Home.js              # Home/dashboard with highlights & features
-│   ├── Progress.js          # Progress & calendar
-│   ├── Logs.js              # Habit logs history
-│   ├── Notifications.js     # Reminders management with alarms
-│   ├── Goals.js             # Goal creation & management
-│   ├── Badges.js            # Badge display & achievements
-│   ├── Community.js         # Community groups & accountability with leaderboard
-│   └── Profile.js           # User profile settings
-├── utils/                   # Utility functions
-│   └── badgeHelper.js       # Badge earning logic
-├── App.js                   # Main app with routing
-├── App.css                  # App styles (empty, using Tailwind)
-├── index.js                 # Entry point
-└── index.css                # Global styles & Tailwind
-```
+**Technical Implementations:**
+- **Authentication:** Custom user authentication handled via Supabase, including login, registration, and password recovery.
+- **Gamification:** Automated badge awarding system based on habit completion milestones, and a points system for completing reminders and challenges.
+- **Reminders:** Web Audio API for customizable alarm sounds with a 60-second countdown modal.
+- **Community & Challenges:** Real-time challenge system with dynamic UI updates and dual-user point rewards, leveraging Supabase Realtime channels.
+- **Image Handling:** Profile image uploads with preview functionality.
+- **Database Schema:** Structured to support users, habits, logs, goals, badges, community groups, challenges, and user points.
+- **RLS Policies:** Simplified Row-Level Security for custom authentication integration.
 
-## Database Schema (Supabase)
-- **users**: id, email, password, firstname, lastname, age, gender, image
-- **habits**: id, name, category, frequency, user_id
-- **habit_logs**: id, log_date, status, notes, habit_id
-- **goals**: id, title, target_date, is_achieve, habit_id, user_id
-- **badges**: id, name, icon, points_required
-- **user_badges**: id, earned_at, badge_id, user_id
-- **community**: id, name, description
-- **community_members**: id, joined_at, role, community_id, user_id
-- **user_points**: id, user_id, community_id, total_points, created_at, updated_at
-- **challenges**: id, challenger_id, challenged_user_id, habit_id, community_id, status, completed_at, created_at
-- **community_leaderboard**: VIEW - Ranks users by points in each community
+**Feature Specifications:**
+- **Home Dashboard:** Displays daily progress, badges earned, points, and communities joined, along with clickable highlights for Gamified Progress, Goal Setting, Smart Insights, and Community Accountability.
+- **Progress Tracking:** Calendar view, weekly summaries with visual progress bars, streak counters, and success rates.
+- **Goals:** CRUD operations for goal creation, linking to habits, and progress tracking.
+- **Badges:** Auto-awarded badges based on habit consistency, displayed with progress counters.
+- **Community:** Create/join communities, a real-time leaderboard, and a challenge system where users can challenge others with habits, earning points collaboratively.
+- **Rewards:** Point-based system for earning badges and claiming physical reward items.
+- **Profile:** Account settings, password change, and image upload.
 
-## Features
-1. **Authentication**: Login, Register, Forgot Password with custom users table and SweetAlert validation
-2. **Home Dashboard**: 
-   - Tagline: "Level up your life, every single day"
-   - **4 Dashboard Stat Cards**:
-     - Today's Progress (X/Y habits completed)
-     - Badges Earned (count)
-     - Points (total earned)
-     - Communities (groups joined)
-   - **4 Unique Features/Highlights** (clickable cards):
-     - 🏆 **Gamified Progress**: Auto-earn badges as you complete habits (shows earned badge count)
-     - ⚡ **Set & Achieve Goals**: Connect habits with personal goals (shows goal count)
-     - 📊 **Smart Insights**: Detailed analytics & trends with calendar view
-     - 👥 **Community Accountability**: Join groups and build habits together (shows groups joined count)
-   - Daily habit list with progress tracking, create new or select existing habits
-3. **Progress**: 
-   - Calendar view with monthly tracking - click any day to filter habits by date
-   - Weekly summary with visual progress bars (green for completed, orange for missed)
-   - Completion/Missed habit lists with dates ordered by latest first
-   - Day streak counter, success rate percentage
-4. **Logs**: Habit history with notes
-5. **Notifications/Alerts**: 
-   - 5 selectable alarm sounds with preview: Classic Beep, Sweet Bell, Gentle Chime, Loud Alarm, Rising Tone
-   - User can preview each alarm before saving reminder
-   - Web Audio API generates selected alarm beeps when reminder triggers
-   - 60-second countdown modal displays directly (no alerts)
-   - STOP button to dismiss alarm anytime (+10 points awarded)
-   - Continuous alarm playback during countdown (every 1.5 seconds)
-   - Works on desktop & mobile
-6. **Goals**: 
-   - Create goals with title, target date, and linked habit
-   - Mark goals as achieved/pending
-   - **Edit goals** - Change title, target date, and habit connection
-   - Delete goals with confirmation
-   - Date validation: Only today or future dates allowed
-   - Full CRUD operations with SweetAlert notifications
-7. **Badges** (Gamified): 
-   - Auto-award badges on habit completion:
-     - First Step: 1 completed habit
-     - Week Warrior: 7+ habits completed in 7 days
-     - 30 Day Master: 20+ habits completed in 30 days
-     - Consistency Champion: 50+ total completed habits
-   - Display all available badges
-   - Show earned badges with dates
-   - Progress counter (X badges earned out of total)
-   - Beautiful badge icons and styling
-8. **Community** (Accountability & Challenges): 
-   - **Create & Join Communities**: Build or join accountability groups
-   - **Community Leaderboard** ⭐:
-     - Click any joined community to view leaderboard
-     - See all members ranked by points (highest to lowest)
-     - Display member name, profile image, and total points
-     - Real-time ranking updates from database
-   - **Challenge System** 🎯:
-     - **Send Challenge**: Click "Challenge" button next to any community member
-     - Select one of your habits to challenge them with
-     - **Receive Challenge Notifications**:
-       - Notification badge shows pending challenge count
-       - Beautiful profile card modal appears with:
-         - Challenger's profile image (large rounded photo)
-         - Full name, age, and gender
-         - Challenge habit name in gradient card
-         - Reward information (25 points) in yellow gradient
-       - Poll system checks for new challenges every 5 seconds
-     - **Accept or Decline**: 
-       - Accept to earn 25 points upon habit completion
-       - Decline to reject the challenge
-       - Visual feedback with emojis (👋 Decline, ✨ Accept)
-     - Track all pending and completed challenges in database
-   - Leave communities anytime
-   - View all available communities
-   - 5 Pre-built Communities: Fitness Warriors, Meditation Masters, Reading Circle, Productivity Pros, Health Champions
-
-9. **Rewards & Points System**:
-   - **+10 Points** per reminder completion (when clicking STOP)
-   - **Point-based Reward Badges**:
-     - 🥉 Bronze Badge: 1000 points
-     - 🥈 Silver Badge: 3000 points
-     - 🥇 Gold Badge: 5000 points
-     - 💎 Diamond Badge: 10000 points
-   - **Physical Reward Items** (claimable with points):
-     - 👕 Signature T-Shirt: 2000 points
-     - 🧥 Premium Hoodie: 5000 points
-     - 🏆 Trophy: 7500 points
-   - Track claimed rewards and total points earned
-   - Rewards page with claim functionality
-   - Real-time points sync across all pages
-10. **Profile**: 
-   - Image upload up to 2MB with preview confirmation
-   - Account settings with SweetAlert validation
-   - Password change with smart alerts
-   - Solid red logout button
-   - Only shows success alert if data actually changed
-
-## Bottom Navigation (5 Items)
-1. Home - Dashboard with feature highlights, habits, and 4 stat cards
-2. Progress - Calendar view and analytics
-3. Logs - Habit history
-4. Alerts - Reminders with alarm sounds
-5. Rewards - Claim badges and rewards with earned points
-
-## Feature Highlights on Homepage (Clickable Links to)
-- 🏆 Gamified Progress → Links to Badges page
-- ⚡ Set & Achieve Goals → Links to Goals page
-- 📊 Smart Insights → Links to Progress page
-- 👥 Community Accountability → Links to Community page
-
-## Alarm Sounds
-- 🔔 Classic Beep: 800Hz tone
-- 🎵 Sweet Bell: 1000Hz bell
-- ✨ Gentle Chime: 600Hz soft tone
-- 🔊 Loud Alarm: 1200Hz high frequency
-- 📢 Rising Tone: 700Hz rising frequency
-
-## Environment Variables
-- `REACT_APP_SUPABASE_URL`: Supabase project URL
-- `REACT_APP_SUPABASE_ANON_KEY`: Supabase anonymous key
-- `PORT`: 5000 (development)
-- `HOST`: 0.0.0.0 (development)
-- `DANGEROUSLY_DISABLE_HOST_CHECK`: true (for Replit proxy)
-
-## RLS Policies (Supabase)
-Simplified row-level security policies to work with custom authentication:
-- All tables: Allow INSERT, SELECT, UPDATE, DELETE with `WITH CHECK (true)` for custom auth
-
-## Development
-The "React App" workflow runs `npm start` on port 5000.
-
-## Deployment
-- Type: Static
-- Build: `npm run build`
-- Output: `build/`
-
-## Recent Changes
-- **2025-12-01 Real-Time Challenge System with Button States**:
-  - **Real-Time Subscriptions** (Supabase v2+ API):
-    - Replaced polling with Supabase RealtimeChannels
-    - Instant notifications - no page refresh needed
-    - Live challenge status updates across all users
-  - **Challenge Button States**:
-    - **Default**: "Challenge" - Send a new challenge
-    - **⏳ Pending**: Grayed out when challenge sent, waiting for response
-    - **👁️ View**: Green button when challenge accepted, view shared challenge details
-  - **New Features**:
-    - `ViewChallengeModal.js`: Shows accepted challenge details for both users
-    - `useChallenges.js` hook: Manages real-time challenge subscriptions
-    - Real-time leaderboard updates
-    - Auto-display received challenges without refresh
-  - **Challenge Flow**:
-    1. User A sends challenge → Button shows "⏳ Pending"
-    2. User B receives notification instantly → Modal auto-appears
-    3. User B accepts → Both see "👁️ View" button
-    4. Click View → See shared challenge details with both profiles
-    5. When user completes habit: Both earn 25 points
-  - **Technical**:
-    - Enabled Realtime on `challenges` table in Supabase
-    - Using `supabase.channel()` with `postgres_changes` event listeners
-    - Real-time updates work across browser sessions
-  - Status: ✅ Production Ready - Real-time challenge system live
-
-## Known Issues & Limitations
-- Web Audio API requires browser to have audio output available
-- Reminders use localStorage instead of database for local storage on device
-
-## Completed Features ✅
-- ✅ Full user authentication system
-- ✅ Habit creation and management
-- ✅ Daily habit tracking
-- ✅ Calendar view with day filtering
-- ✅ Progress tracking with visual statistics
-- ✅ Weekly summary with progress bars
-- ✅ 5 customizable alarm sounds
-- ✅ 60-second alarm countdown modal
-- ✅ Profile management with image upload
-- ✅ SweetAlert2 notifications throughout app
-- ✅ Mobile responsive design
-- ✅ Desktop & mobile support
-- ✅ Goals system with CRUD operations
-- ✅ Goals date validation (today or future only)
-- ✅ Badges system with auto-earning on habit completion
-- ✅ Dashboard with 3 unique feature highlights
-- ✅ Bottom navigation with 7 items
-- ✅ Community groups and accountability features
-- ✅ Gamified progress tracking (auto-badges)
-- ✅ Clickable Enable button in Alerts
-- ✅ Community Leaderboard with real-time rankings
-- ✅ Challenge System with send/accept/decline flow
-- ✅ Challenge Notifications with polling system
-- ✅ +25 points rewards for challenge completion
-
-## DailyRise Unique Value Proposition
-**What makes us different from other habit trackers:**
-
-1. **Gamified Progress Tracking** 🏆
-   - Users auto-earn badges and rewards as they complete habits
-   - Makes consistency fun and motivating
-   - Visual reward system keeps users engaged
-   - Automatic achievement recognition
-
-2. **Community Accountability** 👥
-   - Join groups or challenges with friends
-   - Share progress and encourage each other
-   - Build habits together in supportive communities
-   - Foster social motivation and engagement
-
-3. **Smart Insights Dashboard** 📊
-   - Detailed visual analytics and trends
-   - Suggestions to help understand patterns
-   - Turns data into actionable insights
-
-These features transform habit-building from a solo task into an engaging, social, and motivational journey.
+## External Dependencies
+- **Supabase:** Backend as a Service (BaaS) for database, authentication, and real-time functionalities.
+- **React Router DOM:** For client-side routing.
+- **SweetAlert2:** For custom, attractive alert and notification modals.
+- **Web Audio API:** Used for generating and managing custom alarm sounds.

@@ -152,17 +152,42 @@ const Notifications = () => {
     playAlarmSound(alarmType, 1);
   };
 
-  const stopAlarm = () => {
+  const stopAlarm = async () => {
     // Add 10 points when user clicks STOP button
     if (user && currentAlarmReminder) {
       const currentPoints = parseInt(localStorage.getItem(`user_points_${user.id}`) || '0');
       const newPoints = currentPoints + 10;
       localStorage.setItem(`user_points_${user.id}`, newPoints.toString());
+      
       // Dispatch storage event for real-time updates in Rewards page
       window.dispatchEvent(new StorageEvent('storage', {
         key: `user_points_${user.id}`,
         newValue: newPoints.toString(),
       }));
+
+      // Check if this habit is part of an active challenge
+      try {
+        const { data: challenges } = await supabase
+          .from('challenges')
+          .select('challenger_id, challenged_user_id')
+          .eq('habit_id', currentAlarmReminder.habitId)
+          .eq('status', 'completed')
+          .neq('challenger_id', user.id)
+          .maybeSingle();
+
+        if (challenges) {
+          // Award +10 points to the other user as well
+          const otherUserId = challenges.challenger_id === user.id 
+            ? challenges.challenged_user_id 
+            : challenges.challenger_id;
+
+          const otherUserPoints = parseInt(localStorage.getItem(`user_points_${otherUserId}`) || '0');
+          const newOtherUserPoints = otherUserPoints + 10;
+          localStorage.setItem(`user_points_${otherUserId}`, newOtherUserPoints.toString());
+        }
+      } catch (error) {
+        console.error('Error checking for challenges:', error);
+      }
     }
     
     // Stop alarm sound and modal
