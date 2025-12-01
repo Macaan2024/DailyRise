@@ -30,10 +30,22 @@ const Notifications = () => {
   useEffect(() => {
     if (user) {
       fetchData();
+      checkForPrefilled();
     }
     checkNotificationPermission();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  const checkForPrefilled = () => {
+    const prefilled = localStorage.getItem('prefillReminder');
+    if (prefilled) {
+      const data = JSON.parse(prefilled);
+      setSelectedHabit(data.habitId?.toString() || '');
+      setReminderTime(data.reminderTime || '09:00');
+      setShowAddModal(true);
+      localStorage.removeItem('prefillReminder');
+    }
+  };
 
   const checkNotificationPermission = () => {
     if ('Notification' in window) {
@@ -152,9 +164,10 @@ const Notifications = () => {
     playAlarmSound(alarmType, 1);
   };
 
-  const stopAlarm = async () => {
-    // Add 10 points when user clicks STOP button
-    if (user && currentAlarmReminder) {
+  const stopAlarm = async (isWin = true) => {
+    // Add 10 points only if user clicks STOP button (win)
+    // If isWin=false, it means alarm expired (loss), no points awarded
+    if (user && currentAlarmReminder && isWin) {
       const currentPoints = parseInt(localStorage.getItem(`user_points_${user.id}`) || '0');
       const newPoints = currentPoints + 10;
       localStorage.setItem(`user_points_${user.id}`, newPoints.toString());
@@ -204,7 +217,8 @@ const Notifications = () => {
       }, 1000);
       return () => clearTimeout(timer);
     } else if (isAlarmRinging && alarmCountdown === 0) {
-      stopAlarm();
+      // Alarm expired without user clicking STOP - auto loss (0 points)
+      stopAlarm(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAlarmRinging, alarmCountdown]);
@@ -284,7 +298,7 @@ const Notifications = () => {
                 <p className="text-body text-yellow-700 mt-1">Allow notifications to receive habit reminders.</p>
                 <button
                   onClick={requestNotificationPermission}
-                  className="mt-3 bg-yellow-500 text-white px-4 py-2 rounded-lg text-body font-medium hover:bg-yellow-600 transition-colors cursor-pointer"
+                  className="mt-3 bg-yellow-500 text-white px-4 py-2 rounded-lg text-body font-medium hover:bg-yellow-600 transition-colors cursor-pointer active:scale-95"
                 >
                   Enable
                 </button>
@@ -477,10 +491,10 @@ const Notifications = () => {
             </div>
 
             <button
-              onClick={stopAlarm}
-              className="w-full py-3 rounded-lg bg-red-500 text-white text-body font-medium hover:bg-red-600 transition-all"
+              onClick={() => stopAlarm(true)}
+              className="w-full py-3 rounded-lg bg-red-500 text-white text-body font-medium hover:bg-red-600 transition-all active:scale-95"
             >
-              STOP
+              STOP - WIN +10 🏆
             </button>
           </div>
         </div>

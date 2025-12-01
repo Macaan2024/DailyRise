@@ -7,6 +7,7 @@ const ChallengeModal = ({ isOpen, communityId, challengedUserId, onClose, onSucc
   const { user } = useAuth();
   const [habits, setHabits] = useState([]);
   const [selectedHabit, setSelectedHabit] = useState(null);
+  const [reminderTime, setReminderTime] = useState('09:00');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -34,11 +35,11 @@ const ChallengeModal = ({ isOpen, communityId, challengedUserId, onClose, onSucc
   };
 
   const sendChallenge = async () => {
-    if (!selectedHabit) {
+    if (!selectedHabit || !reminderTime) {
       Swal.fire({
         icon: 'warning',
-        title: 'Select a Habit',
-        text: 'Please select a habit to challenge',
+        title: 'Complete All Fields',
+        text: 'Please select a habit and set a reminder time',
         confirmButtonColor: '#043915',
       });
       return;
@@ -53,7 +54,8 @@ const ChallengeModal = ({ isOpen, communityId, challengedUserId, onClose, onSucc
           challenged_user_id: challengedUserId,
           habit_id: selectedHabit,
           community_id: communityId,
-          status: 'pending'
+          status: 'pending',
+          reminder_time: reminderTime
         }]);
 
       if (error) throw error;
@@ -106,8 +108,20 @@ const ChallengeModal = ({ isOpen, communityId, challengedUserId, onClose, onSucc
           </select>
         </div>
 
+        <div className="mb-4">
+          <label className="block text-small font-medium text-dark mb-2">
+            Reminder Time
+          </label>
+          <input
+            type="time"
+            value={reminderTime}
+            onChange={(e) => setReminderTime(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded text-small focus:outline-none focus:border-primary"
+          />
+        </div>
+
         <p className="text-small text-gray-600 mb-6">
-          Challenge this user to complete this habit. If they succeed, they'll earn 25 points!
+          Set a reminder time so both of you complete the habit together. Winner earns 10 points!
         </p>
 
         <div className="flex gap-3 sticky bottom-0 bg-white pt-4">

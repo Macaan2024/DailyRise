@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
 const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
+  const navigate = useNavigate();
   const [challenge, setChallenge] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,6 +46,17 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoChallenge = () => {
+    // Store the habit and reminder time to prefill the Notifications page
+    localStorage.setItem('prefillReminder', JSON.stringify({
+      habitId: challenge.habit_id,
+      reminderTime: challenge.reminder_time || '09:00'
+    }));
+    // Close modal and navigate to Notifications page
+    onClose();
+    navigate('/notifications');
   };
 
   if (!isOpen) return null;
@@ -218,7 +231,7 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
 
           {/* Action Button */}
           <button
-            onClick={onClose}
+            onClick={handleGoChallenge}
             className="w-full px-3 sm:px-4 lg:px-6 py-3 sm:py-4 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary-dark text-light rounded-lg sm:rounded-xl font-poppins font-bold text-small sm:text-body transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 transform"
           >
             Got It! Let's Go 💪
