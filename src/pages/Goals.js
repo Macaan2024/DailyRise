@@ -77,10 +77,11 @@ const Goals = () => {
         confirmButtonColor: '#043915',
       });
     } catch (error) {
+      console.error('Add goal error:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Failed to create goal',
+        text: error.message || 'Failed to create goal',
         confirmButtonColor: '#043915',
       });
     }
