@@ -93,7 +93,7 @@ const Notifications = () => {
 
     const habit = habits.find(h => h.id === parseInt(selectedHabit));
     const newReminder = {
-      id: Date.now(),
+      id: Date.now() + Math.random(),
       habitId: parseInt(selectedHabit),
       habitName: habit?.name || 'Unknown',
       time: reminderTime,
