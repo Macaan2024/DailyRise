@@ -73,13 +73,17 @@ src/
 1. **Authentication**: Login, Register, Forgot Password with custom users table and SweetAlert validation
 2. **Home Dashboard**: 
    - Tagline: "Level up your life, every single day"
-   - 4 Unique Features/Highlights:
+   - **4 Dashboard Stat Cards**:
+     - Today's Progress (X/Y habits completed)
+     - Badges Earned (count)
+     - Points (total earned)
+     - Communities (groups joined)
+   - **4 Unique Features/Highlights** (clickable cards):
      - 🏆 **Gamified Progress**: Auto-earn badges as you complete habits (shows earned badge count)
      - ⚡ **Set & Achieve Goals**: Connect habits with personal goals (shows goal count)
      - 📊 **Smart Insights**: Detailed analytics & trends with calendar view
      - 👥 **Community Accountability**: Join groups and build habits together (shows groups joined count)
    - Daily habit list with progress tracking, create new or select existing habits
-   - Today's progress circular indicator
 3. **Progress**: 
    - Calendar view with monthly tracking - click any day to filter habits by date
    - Weekly summary with visual progress bars (green for completed, orange for missed)
@@ -112,11 +116,25 @@ src/
    - Progress counter (X badges earned out of total)
    - Beautiful badge icons and styling
 8. **Community** (Accountability): 
-   - Create community groups/challenges
+   - Create community groups/challenges with select dropdown
    - Join other communities
    - Leave communities
    - View all available communities
    - Share progress with friends in communities
+
+9. **Rewards & Points System**:
+   - **+10 Points** for each completed habit
+   - **Point-based Reward Badges**:
+     - 🥉 Bronze Badge: 1000 points
+     - 🥈 Silver Badge: 3000 points
+     - 🥇 Gold Badge: 5000 points
+     - 💎 Diamond Badge: 10000 points
+   - **Physical Reward Items** (claimable with points):
+     - 👕 Signature T-Shirt: 2000 points
+     - 🧥 Premium Hoodie: 5000 points
+     - 🏆 Trophy: 7500 points
+   - Track claimed rewards and total points earned
+   - Rewards page with claim functionality
 9. **Profile**: 
    - Image upload up to 2MB with preview confirmation
    - Account settings with SweetAlert validation
@@ -124,11 +142,12 @@ src/
    - Solid red logout button
    - Only shows success alert if data actually changed
 
-## Bottom Navigation (4 Items)
-1. Home - Dashboard with 3 feature highlights and habit tracking
+## Bottom Navigation (5 Items)
+1. Home - Dashboard with feature highlights, habits, and 4 stat cards
 2. Progress - Calendar view and analytics
 3. Logs - Habit history
 4. Alerts - Reminders with alarm sounds
+5. Rewards - Claim badges and rewards with earned points
 
 ## Feature Highlights on Homepage (Clickable Links to)
 - 🏆 Gamified Progress → Links to Badges page
@@ -163,14 +182,17 @@ The "React App" workflow runs `npm start` on port 5000.
 - Output: `build/`
 
 ## Recent Changes
-- **2025-12-01 Final UI & Community Highlight**: 
-  - Added Community feature to homepage highlights (4 unique features total)
-  - Added edit button to Goals page (change goal details anytime)
-  - Reduced bottom navigation to 4 core items (Home, Progress, Logs, Alerts)
-  - Moved Goals, Badges, Community to homepage feature cards with counts
-  - Homepage now displays 4 unique features as entry points to advanced features
-  - Community count shows how many groups user has joined
-  - Cleaner navigation with focus on core habit tracking workflow
+- **2025-12-01 Complete Points & Rewards System**: 
+  - Fixed community creation error (description now optional with default)
+  - Added 4 dashboard stat cards: Today's Progress, Badges Earned, Points, Communities
+  - Implemented points system: +10 points per completed habit
+  - Created Rewards page with claimable badges (Bronze/Silver/Gold/Diamond)
+  - Added physical rewards: T-Shirt, Hoodie, Trophy
+  - Rewards accessible via new bottom nav item
+  - Goals now have select dropdown with title examples
+  - Communities now have select dropdown with name examples
+  - Points auto-calculate from completed habits count
+  - Claimed rewards stored in localStorage
 
 ## Known Issues & Limitations
 - RLS policies use simplified settings (USING true) due to custom authentication limitations

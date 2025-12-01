@@ -21,6 +21,7 @@ const Home = () => {
   const [goalsCount, setGoalsCount] = useState(0);
   const [badgesCount, setBadgesCount] = useState(0);
   const [communityCount, setCommunityCount] = useState(0);
+  const [userPoints, setUserPoints] = useState(0);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -83,9 +84,20 @@ const Home = () => {
         .select('*')
         .eq('user_id', user.id);
 
+      const { data: allLogs } = await supabase
+        .from('habit_logs')
+        .select('*')
+        .eq('status', 'done');
+
+      const userCompletedLogs = allLogs?.filter(log => {
+        const habit = habits.find(h => h.id === log.habit_id);
+        return habit?.user_id === user.id;
+      }) || [];
+
       setGoalsCount(goalsData?.length || 0);
       setBadgesCount(badgesData?.length || 0);
       setCommunityCount(communitiesData?.length || 0);
+      setUserPoints(userCompletedLogs.length * 10);
     } catch (error) {
       console.error('Error fetching goals and badges:', error);
     }
@@ -227,37 +239,26 @@ const Home = () => {
           <p className="text-subheading text-dark">{formatDate()}</p>
         </div>
 
-        <div className="card mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className="text-body text-gray-500">Today's Progress</p>
-              <p className="text-heading text-primary">{completedCount}/{totalCount} Habits</p>
-            </div>
-            <div className="relative w-16 h-16">
-              <svg className="w-16 h-16 transform -rotate-90">
-                <circle
-                  cx="32"
-                  cy="32"
-                  r="28"
-                  stroke="#e5e7eb"
-                  strokeWidth="6"
-                  fill="transparent"
-                />
-                <circle
-                  cx="32"
-                  cy="32"
-                  r="28"
-                  stroke="#043915"
-                  strokeWidth="6"
-                  fill="transparent"
-                  strokeDasharray={`${progressPercent * 1.76} 176`}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-body font-medium text-dark">
-                {progressPercent}%
-              </span>
-            </div>
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="card">
+            <p className="text-body text-gray-500">Today's Progress</p>
+            <p className="text-heading text-primary mt-1">{completedCount}/{totalCount}</p>
+            <p className="text-xs text-gray-400 mt-1">{progressPercent}% Done</p>
+          </div>
+          <div className="card">
+            <p className="text-body text-gray-500">Badges Earned</p>
+            <p className="text-heading text-primary mt-1">{badgesCount}</p>
+            <p className="text-xs text-gray-400 mt-1">Achievements</p>
+          </div>
+          <div className="card">
+            <p className="text-body text-gray-500">Points</p>
+            <p className="text-heading text-primary mt-1">{userPoints}</p>
+            <p className="text-xs text-gray-400 mt-1">Total Earned</p>
+          </div>
+          <div className="card">
+            <p className="text-body text-gray-500">Communities</p>
+            <p className="text-heading text-primary mt-1">{communityCount}</p>
+            <p className="text-xs text-gray-400 mt-1">Groups Joined</p>
           </div>
         </div>
 

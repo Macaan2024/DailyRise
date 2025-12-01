@@ -58,11 +58,11 @@ const Community = () => {
   };
 
   const createCommunity = async () => {
-    if (!newCommunity.name || !newCommunity.description) {
+    if (!newCommunity.name) {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Please fill in all fields',
+        text: 'Please select a community name',
         confirmButtonColor: '#043915',
       });
       return;
@@ -71,7 +71,7 @@ const Community = () => {
     try {
       const { data, error } = await supabase
         .from('community')
-        .insert([{ name: newCommunity.name, description: newCommunity.description }])
+        .insert([{ name: newCommunity.name, description: newCommunity.description || 'Join us in this amazing community!' }])
         .select()
         .single();
 
