@@ -1,0 +1,18 @@
+[build]
+  command = "npm run build"
+  publish = "build"
+
+[build.environment]
+  CI = "true"
+  NODE_VERSION = "18"
+
+# Environment variables must be set in Netlify dashboard:
+# 1. Go to Netlify dashboard > Site settings > Build & Deploy > Environment
+# 2. Add these variables:
+#    - REACT_APP_SUPABASE_URL: Your Supabase project URL
+#    - REACT_APP_SUPABASE_ANON_KEY: Your Supabase anon key
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
