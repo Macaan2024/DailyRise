@@ -185,14 +185,16 @@ The "React App" workflow runs `npm start` on port 5000.
 - Output: `build/`
 
 ## Recent Changes
-- **2025-12-01 Complete Community System with Database Members**:
-  - **Community Page**: Dropdown selector showing all 5 communities
-  - **Database Members Display**: Real users fetched from database (17 demo users created)
-  - **Member Leaderboard**: Ranked by points from localStorage with user details from database
-  - **Challenge System**: Send habit challenges to any community member via modal
-  - **Friend System**: Add users as friends (pending/accepted status with database tracking)
+- **2025-12-01 Complete Community System with Join Functionality**:
+  - **My Communities Section**: Shows communities user has already joined
+  - **Available Communities Section**: Shows communities user can join with "+ Join" button
+  - **Join Community**: Saves membership to `community_members` table (community_id, user_id, role, joined_at)
+  - **Leave Community**: Remove from community and community_members table
+  - **Community Members Display**: Shows all members in selected community with points leaderboard
+  - **Challenge System**: Send habit challenges to any community member
+  - **Friend System**: Add users as friends (tracks in friends table)
+  - **17 Demo Users**: Pre-created with links to all 5 communities
   - **5 Pre-built Communities**: Fitness Warriors, Meditation Masters, Reading Circle, Productivity Pros, Health Champions
-  - Each community linked to demo members via community_members table
   - Real-time points synchronization across all pages
   - All database schema complete with proper foreign keys and constraints
 

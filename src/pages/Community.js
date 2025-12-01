@@ -7,7 +7,9 @@ import Swal from 'sweetalert2';
 
 const Community = () => {
   const { user } = useAuth();
-  const [selectedCommunityId, setSelectedCommunityId] = useState(1);
+  const [selectedCommunityId, setSelectedCommunityId] = useState(null);
+  const [allCommunities, setAllCommunities] = useState([]);
+  const [userCommunities, setUserCommunities] = useState([]);
   const [communityMembers, setCommunityMembers] = useState([]);
   const [habits, setHabits] = useState([]);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
@@ -16,19 +18,13 @@ const Community = () => {
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Static Communities Data
-  const communities_list = [
-    { id: 1, name: 'Fitness Warriors', description: 'Exercise and fitness challenges' },
-    { id: 2, name: 'Meditation Masters', description: 'Mindfulness and meditation group' },
-    { id: 3, name: 'Reading Circle', description: 'Daily reading habits' },
-    { id: 4, name: 'Productivity Pros', description: 'Build productive habits together' },
-    { id: 5, name: 'Health Champions', description: 'Health and wellness community' },
-  ];
-
   useEffect(() => {
-    fetchCommunityMembers(1);
-    fetchHabits();
-    fetchFriends();
+    if (user) {
+      fetchCommunities();
+      fetchUserCommunities();
+      fetchHabits();
+      fetchFriends();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -38,6 +34,38 @@ const Community = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCommunityId]);
+
+  const fetchCommunities = async () => {
+    try {
+      setLoading(true);
+      const { data } = await supabase
+        .from('community')
+        .select('*')
+        .order('name', { ascending: true });
+      setAllCommunities(data || []);
+    } catch (error) {
+      console.error('Error fetching communities:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserCommunities = async () => {
+    try {
+      const { data } = await supabase
+        .from('community_members')
+        .select('community_id')
+        .eq('user_id', user.id);
+      setUserCommunities(data?.map(m => m.community_id) || []);
+      
+      // Set first joined community as selected, or first available
+      if (data && data.length > 0) {
+        setSelectedCommunityId(data[0].community_id);
+      }
+    } catch (error) {
+      console.error('Error fetching user communities:', error);
+    }
+  };
 
   const fetchCommunityMembers = async (communityId) => {
     try {
@@ -102,6 +130,74 @@ const Community = () => {
       }
     } catch (error) {
       console.error('Error fetching friends:', error);
+    }
+  };
+
+  const joinCommunity = async (communityId) => {
+    try {
+      const { error } = await supabase
+        .from('community_members')
+        .insert([{
+          community_id: communityId,
+          user_id: user.id,
+          role: 'member'
+        }]);
+
+      if (error) throw error;
+
+      setUserCommunities([...userCommunities, communityId]);
+      setSelectedCommunityId(communityId);
+      fetchCommunityMembers(communityId);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Community Joined!',
+        text: 'You successfully joined the community',
+        timer: 1500,
+        confirmButtonColor: '#043915',
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to join community',
+        confirmButtonColor: '#043915',
+      });
+    }
+  };
+
+  const leaveCommunity = async (communityId) => {
+    try {
+      const { error } = await supabase
+        .from('community_members')
+        .delete()
+        .eq('community_id', communityId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const updated = userCommunities.filter(id => id !== communityId);
+      setUserCommunities(updated);
+      
+      if (selectedCommunityId === communityId) {
+        setSelectedCommunityId(updated.length > 0 ? updated[0] : null);
+        setCommunityMembers([]);
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Left Community',
+        text: 'You left the community',
+        timer: 1500,
+        confirmButtonColor: '#043915',
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to leave community',
+        confirmButtonColor: '#043915',
+      });
     }
   };
 
@@ -181,96 +277,137 @@ const Community = () => {
     }
   };
 
-  const selectedCommunity = communities_list.find(c => c.id === selectedCommunityId);
+  const selectedCommunity = allCommunities.find(c => c.id === selectedCommunityId);
+  const myJoinedCommunities = allCommunities.filter(c => userCommunities.includes(c.id));
+  const availableCommunities = allCommunities.filter(c => !userCommunities.includes(c.id));
 
   return (
     <Layout>
       <Header title="Community" />
       
       <div className="px-4 py-4 pb-32">
-        {/* Community Selector */}
-        <div className="mb-6">
-          <label className="block text-body font-medium text-dark mb-3">Select a Community</label>
-          <select
-            value={selectedCommunityId}
-            onChange={(e) => setSelectedCommunityId(parseInt(e.target.value))}
-            className="input-field w-full"
-          >
-            {communities_list.map((community) => (
-              <option key={community.id} value={community.id}>
-                {community.name}
-              </option>
-            ))}
-          </select>
-          {selectedCommunity && (
-            <p className="text-small text-gray-500 mt-2">
-              {selectedCommunity.description}
-            </p>
-          )}
-        </div>
-
-        {/* Community Members */}
-        {selectedCommunity && (
-          <div>
-            <h2 className="text-subheading font-poppins text-dark mb-4">
-              👥 Community Members ({communityMembers.length})
-            </h2>
-
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            ) : communityMembers.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-body text-gray-500">No members in this community yet</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {communityMembers.map((member, index) => (
-                  <div key={member.userId} className="card">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">
-                          {index + 1}
-                        </div>
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <>
+            {/* My Communities */}
+            {myJoinedCommunities.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-subheading font-poppins text-dark mb-4">👥 My Communities</h2>
+                <div className="space-y-3">
+                  {myJoinedCommunities.map((community) => (
+                    <div 
+                      key={community.id}
+                      onClick={() => setSelectedCommunityId(community.id)}
+                      className={`card cursor-pointer transition ${selectedCommunityId === community.id ? 'bg-primary/10 border-2 border-primary' : ''}`}
+                    >
+                      <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <p className="text-body font-medium text-dark">
-                            {member.name}
-                          </p>
-                          <p className="text-small text-gray-500">{member.points} points</p>
+                          <h3 className="text-body font-medium text-dark">{community.name}</h3>
+                          <p className="text-small text-gray-500">{community.description}</p>
                         </div>
-                      </div>
-
-                      <div className="flex gap-2">
                         <button
-                          onClick={() => {
-                            setSelectedUser(member.userId);
-                            setShowChallengeModal(true);
-                          }}
-                          className="px-3 py-1 bg-primary text-white text-xs rounded hover:bg-primary/90"
-                          title="Challenge this user"
+                          onClick={() => leaveCommunity(community.id)}
+                          className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
                         >
-                          ⚡ Challenge
-                        </button>
-                        <button
-                          onClick={() => addFriend(member.userId)}
-                          disabled={friends.includes(member.userId)}
-                          className={`px-3 py-1 text-xs rounded ${
-                            friends.includes(member.userId)
-                              ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                              : 'bg-green-500 text-white hover:bg-green-600'
-                          }`}
-                          title={friends.includes(member.userId) ? 'Already a friend' : 'Add friend'}
-                        >
-                          {friends.includes(member.userId) ? '✓ Friend' : '+ Add'}
+                          Leave
                         </button>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
-          </div>
+
+            {/* Available Communities */}
+            {availableCommunities.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-subheading font-poppins text-dark mb-4">🔓 Available Communities</h2>
+                <div className="space-y-3">
+                  {availableCommunities.map((community) => (
+                    <div key={community.id} className="card">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h3 className="text-body font-medium text-dark">{community.name}</h3>
+                          <p className="text-small text-gray-500">{community.description}</p>
+                        </div>
+                        <button
+                          onClick={() => joinCommunity(community.id)}
+                          className="px-4 py-2 bg-primary text-white text-xs rounded hover:bg-primary/90 font-medium"
+                        >
+                          + Join
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Community Members */}
+            {selectedCommunity && userCommunities.includes(selectedCommunity.id) && (
+              <div>
+                <h2 className="text-subheading font-poppins text-dark mb-4">
+                  🏆 {selectedCommunity.name} Members ({communityMembers.length})
+                </h2>
+
+                {communityMembers.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-body text-gray-500">No members yet. You're the first!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {communityMembers.map((member, index) => (
+                      <div key={member.userId} className="card">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-body font-medium text-dark">
+                                {member.userId === user.id ? '👤 You' : member.name}
+                              </p>
+                              <p className="text-small text-gray-500">{member.points} points</p>
+                            </div>
+                          </div>
+
+                          {member.userId !== user.id && (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setSelectedUser(member.userId);
+                                  setShowChallengeModal(true);
+                                }}
+                                className="px-3 py-1 bg-primary text-white text-xs rounded hover:bg-primary/90"
+                                title="Challenge this user"
+                              >
+                                ⚡ Challenge
+                              </button>
+                              <button
+                                onClick={() => addFriend(member.userId)}
+                                disabled={friends.includes(member.userId)}
+                                className={`px-3 py-1 text-xs rounded ${
+                                  friends.includes(member.userId)
+                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                                    : 'bg-green-500 text-white hover:bg-green-600'
+                                }`}
+                                title={friends.includes(member.userId) ? 'Already a friend' : 'Add friend'}
+                              >
+                                {friends.includes(member.userId) ? '✓ Friend' : '+ Add'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -312,7 +449,7 @@ const Community = () => {
                   <p className="text-small text-gray-500">Create a habit first to send challenges!</p>
                 )}
                 {habits.length > 0 && (
-                  <p className="text-small text-gray-500">The user will receive a challenge notification to complete this habit!</p>
+                  <p className="text-small text-gray-500">The user will receive a challenge notification!</p>
                 )}
               </div>
             </div>
