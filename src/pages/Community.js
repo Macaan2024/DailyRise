@@ -37,15 +37,13 @@ const Community = () => {
 
   const joinCommunity = async (communityId) => {
     try {
-      const { error } = await supabase
-        .from('community_members')
-        .insert([{
-          community_id: communityId,
-          user_id: user.id,
-          role: 'member'
-        }]);
+      const { data, error } = await supabase.rpc('join_community', {
+        p_community_id: communityId,
+        p_user_id: user.id
+      });
 
       if (error) throw error;
+      if (data?.success === false) throw new Error(data?.error || 'Failed to join');
 
       setJoinedCommunities([...joinedCommunities, communityId]);
 
@@ -69,13 +67,13 @@ const Community = () => {
 
   const leaveCommunity = async (communityId) => {
     try {
-      const { error } = await supabase
-        .from('community_members')
-        .delete()
-        .eq('community_id', communityId)
-        .eq('user_id', user.id);
+      const { data, error } = await supabase.rpc('leave_community', {
+        p_community_id: communityId,
+        p_user_id: user.id
+      });
 
       if (error) throw error;
+      if (data?.success === false) throw new Error(data?.error || 'Failed to leave');
 
       setJoinedCommunities(joinedCommunities.filter(id => id !== communityId));
 
