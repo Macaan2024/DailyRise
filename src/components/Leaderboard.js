@@ -45,6 +45,7 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
 
   const fetchLeaderboard = async () => {
     try {
+      // Ensure your 'community_leaderboard' view includes the 'image' column
       const { data, error } = await supabase
         .from('community_leaderboard')
         .select('*')
@@ -115,7 +116,7 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
     const state = getButtonState(memberId);
     if (state === 'pending') return '⏳ Pending';
     if (state === 'accepted' || state === 'completed') return '👁️ View';
-    return '🎯 Challenge';
+    return 'Challenge';
   };
 
   const getButtonStyle = (memberId) => {
@@ -139,14 +140,26 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
 
   return (
     <div className="space-y-2">
-      <h3 className="text-body font-semibold text-dark px-4 mb-3">🏆 Leaderboard</h3>
+      <h3 className="text-body font-semibold text-dark px-4 mb-3">Community Members</h3>
       {members.map((member) => (
         <div key={member.user_id} className="card flex items-center justify-between">
           <div className="flex items-center flex-1">
-            <div className="text-lg font-bold text-primary w-8 text-center">
-              #{member.rank}
+            {/* Display Profile Image instead of Rank Number */}
+            <div className="w-10 h-10 flex-shrink-0 mr-3">
+              {member.image ? (
+                <img 
+                  src={member.image} 
+                  alt={member.firstname} 
+                  className="w-full h-full rounded-full object-cover border border-gray-200"
+                />
+              ) : (
+                <div className="w-full h-full rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                  {member.firstname ? member.firstname[0].toUpperCase() : '?'}
+                </div>
+              )}
             </div>
-            <div className="ml-3 flex-1">
+
+            <div className="ml-0 flex-1">
               <p className="text-body font-medium text-dark">
                 {member.firstname} {member.lastname}
               </p>

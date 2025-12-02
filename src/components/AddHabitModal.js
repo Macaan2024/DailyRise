@@ -21,6 +21,16 @@ const AddHabitModal = ({ habit, onClose, onSave, onDelete }) => {
     frequency: 'daily',
   });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Animation state
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    // Trigger entry animation after mount
+    // Increased delay to 50ms to ensure the browser paints the 'translate-y-full' state first
+    const timer = setTimeout(() => setIsVisible(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (habit) {
@@ -32,6 +42,14 @@ const AddHabitModal = ({ habit, onClose, onSave, onDelete }) => {
     }
   }, [habit]);
 
+  // Helper to handle smooth closing animation
+  const animateAndClose = (callback) => {
+    setIsVisible(false);
+    setTimeout(() => {
+      if (callback) callback();
+    }, 300); // Match duration-300
+  };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -39,29 +57,38 @@ const AddHabitModal = ({ habit, onClose, onSave, onDelete }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
-    onSave(formData);
+    // Animate out, then save
+    animateAndClose(() => onSave(formData));
+  };
+
+  const handleCloseButton = () => {
+    animateAndClose(onClose);
   };
 
   const handleDelete = () => {
     if (showDeleteConfirm) {
-      onDelete();
+      // Animate out, then delete
+      animateAndClose(onDelete);
     } else {
       setShowDeleteConfirm(true);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end overflow-hidden">
+    <div className={`fixed inset-0 z-50 flex items-end overflow-hidden transition-colors duration-300 ${isVisible ? 'bg-black/50' : 'bg-black/0 pointer-events-none'}`}>
+      {/* Backdrop tap to close */}
+      <div className="absolute inset-0" onClick={handleCloseButton}></div>
+
       <form 
         onSubmit={handleSubmit} 
-        className="bg-white w-full max-h-[85vh] rounded-t-3xl overflow-hidden flex flex-col animate-slide-up"
+        className={`bg-white w-full max-h-[85vh] rounded-t-3xl overflow-hidden flex flex-col z-10 transition-transform duration-300 ease-in-out transform ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 flex-shrink-0">
           <h2 className="text-heading font-poppins text-dark">{habit ? 'Edit Habit' : 'Add New Habit'}</h2>
           <button 
             type="button" 
-            onClick={onClose} 
+            onClick={handleCloseButton} 
             className="p-1 text-gray-400 hover:text-gray-600"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -143,11 +170,7 @@ const AddHabitModal = ({ habit, onClose, onSave, onDelete }) => {
             <button
               type="button"
               onClick={handleDelete}
-              className={`w-full py-3 rounded-lg text-body font-medium transition-all ${
-                showDeleteConfirm
-                  ? 'bg-red-500 text-white'
-                  : 'bg-red-50 text-red-600 hover:bg-red-100'
-              }`}
+              className="w-full py-3 rounded-lg text-body font-medium transition-all bg-red-500 text-white hover:bg-red-600"
             >
               {showDeleteConfirm ? 'Confirm Delete' : 'Delete Habit'}
             </button>
