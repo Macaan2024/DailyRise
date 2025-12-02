@@ -22,7 +22,7 @@ const Layout = ({ children }) => {
           onAccept={() => acceptChallenge(incomingChallenge.id)}
           onDecline={() => rejectChallenge(incomingChallenge.id)}
         />
-      )}
+      )}F
     </div>
   );
 };
