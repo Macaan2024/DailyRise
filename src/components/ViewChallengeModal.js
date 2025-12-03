@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
 const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
-  const navigate = useNavigate();
   const [challenge, setChallenge] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -16,7 +14,6 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
 
   const fetchChallenge = async () => {
     try {
-      console.log('📊 Fetching challenge:', challengeId);
       const { data: challengeData, error } = await supabase
         .from('challenges')
         .select(`
@@ -27,7 +24,6 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
           challenger_id,
           challenged_user_id,
           habit_id,
-          community_id,
           habits (name),
           challenger:users!challenger_id (firstname, lastname, image, age, gender),
           challengee:users!challenged_user_id (firstname, lastname, image, age, gender)
@@ -35,12 +31,8 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
         .eq('id', challengeId)
         .single();
 
-      if (error) {
-        console.error('🔴 Query error:', error);
-      } else {
-        console.log('✅ Challenge fetched:', challengeData);
-        setChallenge(challengeData);
-      }
+      if (error) throw error;
+      setChallenge(challengeData);
     } catch (error) {
       console.error('Error fetching challenge:', error);
     } finally {
@@ -48,203 +40,175 @@ const ViewChallengeModal = ({ isOpen, challengeId, onClose }) => {
     }
   };
 
-  const handleGoChallenge = () => {
-    // Get reminder time from challenge DB or localStorage backup
-    let reminderTime = challenge.reminder_time || '09:00';
-    
-    // Check localStorage for reminder_time backup
-    const reminderTimes = JSON.parse(localStorage.getItem('challenge_reminder_times') || '{}');
-    if (reminderTimes[challenge.id]) {
-      reminderTime = reminderTimes[challenge.id];
-    }
-    
-    // Store the habit and reminder time to prefill the Notifications page
-    localStorage.setItem('prefillReminder', JSON.stringify({
-      habitId: challenge.habit_id,
-      reminderTime: reminderTime
-    }));
-    // Close modal and navigate to Notifications page
-    onClose();
-    navigate('/notifications');
-  };
-
   if (!isOpen) return null;
-  if (loading) return null;
+
+  // --- Loading Spinner (Centered) ---
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark/60 backdrop-blur-sm">
+        <div className="bg-light p-5 rounded-2xl shadow-xl flex flex-col items-center">
+          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mb-3"></div>
+          <p className="text-small font-roboto text-gray-500">Loading details...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!challenge) return null;
 
+  // Data Extraction
   const challengerName = `${challenge.challenger?.firstname || 'User'} ${challenge.challenger?.lastname || ''}`;
   const challengedName = `${challenge.challengee?.firstname || 'User'} ${challenge.challengee?.lastname || ''}`;
   const habitName = challenge.habits?.[0]?.name || challenge.habits?.name || 'Unknown Habit';
-  const isCompleted = challenge.status === 'completed' || challenge.status === 'accepted';
-  const challengerImage = challenge.challenger?.image;
-  const challengedImage = challenge.challengee?.image;
-  const challengerAge = challenge.challenger?.age || 'N/A';
-  const challengedAge = challenge.challengee?.age || 'N/A';
-  const challengerGender = challenge.challenger?.gender || 'N/A';
-  const challengedGender = challenge.challengee?.gender || 'N/A';
+  const challengerImage = challenge.challenger?.image || 'https://via.placeholder.com/100?text=User';
+  const challengedImage = challenge.challengee?.image || 'https://via.placeholder.com/100?text=User';
+
+  // Helper for Status Badge using your text sizes
+  const getStatusBadge = (status) => {
+    const styles = {
+      completed: "bg-green-100 text-green-800 border-green-200",
+      accepted: "bg-blue-100 text-blue-800 border-blue-200",
+      pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      declined: "bg-red-100 text-red-800 border-red-200"
+    };
+    
+    const labels = {
+      completed: "Completed",
+      accepted: "In Progress",
+      pending: "Pending",
+      declined: "Declined"
+    };
+
+    const currentStyle = styles[status] || "bg-gray-100 text-gray-600 border-gray-200";
+    const label = labels[status] || status;
+
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-small font-medium font-roboto border ${currentStyle}`}>
+        {label}
+      </span>
+    );
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
-      <div className="bg-light rounded-2xl w-full max-w-sm sm:max-w-md lg:max-w-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
-        {/* Premium Header */}
-        <div className="relative h-24 sm:h-28 lg:h-32 bg-gradient-to-br from-primary via-primary-dark to-primary-dark overflow-hidden">
-          {/* Decorative Elements */}
-          <div className="absolute top-0 right-0 w-32 h-32 sm:w-40 sm:h-40 bg-primary/10 rounded-full blur-3xl -mr-16 sm:-mr-20 -mt-16 sm:-mt-20"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-primary/5 rounded-full blur-3xl -ml-12 sm:-ml-16 -mb-12 sm:-mb-16"></div>
+    <div className="relative z-50" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      {/* Background Backdrop */}
+      <div className="fixed inset-0 bg-dark/60 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
+
+      {/* Modal Container */}
+      <div className="fixed inset-0 z-10 overflow-y-auto">
+        <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
           
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-light/20 hover:bg-light/30 text-light p-1.5 sm:p-2 rounded-full transition-all text-lg sm:text-xl"
-          >
-            ✕
-          </button>
-
-          <div className="relative h-full flex flex-col justify-center items-center px-4 sm:px-8">
-            <p className="text-small text-light/60 font-poppins uppercase tracking-wider mb-1">Accountability Challenge</p>
-            <h3 className="text-heading sm:text-subheading lg:text-heading font-poppins font-bold text-light text-center" style={{fontSize: '18px', fontWeight: '700'}}>⚡ Challenge Battle</h3>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          {/* Status Section */}
-          <div className="mb-6 flex justify-center">
-            {isCompleted ? (
-              <div className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 bg-primary/10 border border-primary/30 rounded-full">
-                <span className="text-base sm:text-lg">✅</span>
-                <p className="text-small sm:text-body font-poppins font-medium text-primary">Challenge Accepted</p>
-              </div>
-            ) : (
-              <div className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 bg-primary/5 border border-primary/20 rounded-full">
-                <span className="text-base sm:text-lg">⏳</span>
-                <p className="text-small sm:text-body font-poppins font-medium text-primary">Awaiting Response</p>
-              </div>
-            )}
-          </div>
-
-          {/* User Cards - Responsive Grid (Always 2 Columns) */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-6 mb-6 sm:mb-8 lg:mb-10">
-            {/* Challenger Card */}
-            <div className="group">
-              <div className="bg-primary/5 border border-primary/15 rounded-lg sm:rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6 hover:shadow-lg hover:border-primary/30 transition-all duration-300">
-                <div className="flex flex-col items-center">
-                  {/* Profile Image */}
-                  <div className="relative mb-2 sm:mb-3 lg:mb-5">
-                    <div className="absolute inset-0 rounded-full bg-primary/15 blur-lg opacity-25 group-hover:opacity-40 transition-opacity"></div>
-                    <img
-                      src={challengerImage || 'https://via.placeholder.com/100?text=User'}
-                      alt={challengerName}
-                      className="relative w-16 sm:w-20 lg:w-28 h-16 sm:h-20 lg:h-28 rounded-full border-4 border-light shadow-lg object-cover"
-                    />
-                  </div>
-
-                  {/* Info */}
-                  <h4 className="text-small sm:text-body lg:text-heading font-poppins font-semibold text-dark text-center mb-1 sm:mb-2 line-clamp-2">{challengerName}</h4>
-                  <div className="flex items-center gap-0.5 sm:gap-1 text-small lg:text-body text-gray-600 mb-2 sm:mb-3 text-center font-roboto">
-                    <span>👤</span>
-                    <span className="line-clamp-1">{challengerGender}</span>
-                    <span>•</span>
-                    <span>{challengerAge}y</span>
-                  </div>
-
-                  {/* Badge */}
-                  <span className="inline-flex items-center gap-0.5 sm:gap-1 px-2 sm:px-3 lg:px-4 py-1 sm:py-1.5 lg:py-2 bg-primary/20 text-primary text-small lg:text-body font-poppins font-bold rounded-full whitespace-nowrap">
-                    🎖️ Challenger
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Challenged User Card */}
-            <div className="group">
-              <div className="bg-primary/5 border border-primary/15 rounded-lg sm:rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6 hover:shadow-lg hover:border-primary/30 transition-all duration-300">
-                <div className="flex flex-col items-center">
-                  {/* Profile Image */}
-                  <div className="relative mb-2 sm:mb-3 lg:mb-5">
-                    <div className="absolute inset-0 rounded-full bg-primary/15 blur-lg opacity-25 group-hover:opacity-40 transition-opacity"></div>
-                    <img
-                      src={challengedImage || 'https://via.placeholder.com/100?text=User'}
-                      alt={challengedName}
-                      className="relative w-16 sm:w-20 lg:w-28 h-16 sm:h-20 lg:h-28 rounded-full border-4 border-light shadow-lg object-cover"
-                    />
-                  </div>
-
-                  {/* Info */}
-                  <h4 className="text-small sm:text-body lg:text-heading font-poppins font-semibold text-dark text-center mb-1 sm:mb-2 line-clamp-2">{challengedName}</h4>
-                  <div className="flex items-center gap-0.5 sm:gap-1 text-small lg:text-body text-gray-600 mb-2 sm:mb-3 text-center font-roboto">
-                    <span>👤</span>
-                    <span className="line-clamp-1">{challengedGender}</span>
-                    <span>•</span>
-                    <span>{challengedAge}y</span>
-                  </div>
-
-                  {/* Badge */}
-                  <span className="inline-flex items-center gap-0.5 sm:gap-1 px-2 sm:px-3 lg:px-4 py-1 sm:py-1.5 lg:py-2 bg-primary/20 text-primary text-small lg:text-body font-poppins font-bold rounded-full whitespace-nowrap">
-                    🏅 Challenged
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* VS Divider */}
-          <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 mb-6 sm:mb-8 lg:mb-10">
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-            <div className="px-2 sm:px-3 lg:px-4 py-1 sm:py-1.5 lg:py-2 bg-gray-100 rounded-full border border-gray-200">
-              <p className="text-small sm:text-body font-poppins font-bold text-gray-600">VS</p>
-            </div>
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-          </div>
-
-          {/* Habit Challenge */}
-          <div className="mb-4 sm:mb-6 lg:mb-8 p-3 sm:p-4 lg:p-6 bg-primary/5 border border-primary/15 rounded-lg sm:rounded-xl lg:rounded-2xl">
-            <p className="text-small font-poppins font-bold text-gray-600 uppercase tracking-wider mb-2 sm:mb-3 text-center">Challenge Objective</p>
-            <div className="bg-light border border-primary/10 rounded-lg px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-5 text-center">
-              <p className="text-body sm:text-subheading lg:text-heading font-poppins font-bold text-primary mb-1 sm:mb-2 break-words">"{habitName}"</p>
-              <p className="text-small lg:text-body font-roboto text-gray-700 leading-relaxed">
-                Complete this habit together! When either user completes it, both earn rewards! 🎯
-              </p>
-            </div>
-          </div>
-
-          {/* Rewards Info */}
-          <div className="mb-4 sm:mb-6 lg:mb-8 p-3 sm:p-4 lg:p-6 bg-primary/5 border border-primary/15 rounded-lg sm:rounded-xl lg:rounded-2xl">
-            <div className="flex items-start gap-2 sm:gap-3 lg:gap-4">
-              <div className="text-2xl sm:text-3xl lg:text-4xl flex-shrink-0">✨</div>
-              <div className="flex-1 min-w-0">
-                <p className="text-small sm:text-body lg:text-subheading font-poppins font-bold text-dark mb-1">+10 Points Reward</p>
-                <p className="text-small lg:text-body font-roboto text-gray-700 leading-relaxed">
-                  Both earn <span className="font-semibold">10 points</span> to unlock badges! 🏆
+          {/* Modal Panel */}
+          <div className="relative transform overflow-hidden rounded-2xl bg-light text-left shadow-2xl transition-all sm:my-8 w-full max-w-md border border-gray-100">
+            
+            {/* --- Header --- */}
+            <div className="bg-light px-4 py-4 sm:px-6 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-heading font-poppins text-dark" id="modal-title">
+                  Challenge Details
+                </h3>
+                {/* Fixed the ID slicing error */}
+                <p className="text-small font-roboto text-gray-400 mt-0.5">
+                  Ref: #{String(challenge.id).slice(0, 8)}
                 </p>
               </div>
+              <button
+                type="button"
+                className="rounded-full p-1 bg-transparent hover:bg-gray-50 text-gray-400 hover:text-dark transition-colors focus:outline-none"
+                onClick={onClose}
+              >
+                <span className="sr-only">Close</span>
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-          </div>
 
-          {/* Challenge Timeline */}
-          <div className="mb-4 sm:mb-6 lg:mb-8 space-y-2">
-            <p className="text-small font-poppins font-bold text-gray-600 uppercase tracking-wider">Timeline</p>
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-small lg:text-body text-gray-700 font-roboto">
-                <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0"></div>
-                <span className="truncate">Created: {new Date(challenge.created_at).toLocaleDateString()}</span>
+            {/* --- Body Content --- */}
+            <div className="px-4 py-6 sm:px-6 bg-light">
+              
+              {/* 1. Visual Matchup */}
+              <div className="relative flex items-center justify-between mb-8 px-2">
+                 {/* Connection Line */}
+                 <div className="absolute top-1/2 left-4 right-4 h-px bg-gray-200 -z-10"></div>
+
+                 {/* Challenger */}
+                 <div className="flex flex-col items-center z-10">
+                    <div className="relative">
+                      <img src={challengerImage} alt={challengerName} className="w-16 h-16 rounded-full border-4 border-light shadow-md object-cover bg-gray-50" />
+                      <div className="absolute -bottom-1 -right-1 bg-primary text-light text-small font-poppins px-1.5 py-0.5 rounded-full border border-light">
+                        P1
+                      </div>
+                    </div>
+                    <span className="mt-2 text-subheading font-poppins text-dark line-clamp-1 max-w-[80px] text-center">{challengerName}</span>
+                 </div>
+
+                 {/* VS Badge */}
+                 <div className="z-10">
+                    <div className="w-8 h-8 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center shadow-sm">
+                      <span className="text-small font-bold font-poppins text-gray-400">VS</span>
+                    </div>
+                 </div>
+
+                 {/* Receiver */}
+                 <div className="flex flex-col items-center z-10">
+                    <div className="relative">
+                      <img src={challengedImage} alt={challengedName} className="w-16 h-16 rounded-full border-4 border-light shadow-md object-cover bg-gray-50" />
+                      <div className="absolute -bottom-1 -left-1 bg-primary-light text-light text-small font-poppins px-1.5 py-0.5 rounded-full border border-light">
+                        P2
+                      </div>
+                    </div>
+                    <span className="mt-2 text-subheading font-poppins text-dark line-clamp-1 max-w-[80px] text-center">{challengedName}</span>
+                 </div>
               </div>
-              {challenge.completed_at && (
-                <div className="flex items-center gap-2 text-small lg:text-body text-gray-700 font-roboto">
-                  <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0"></div>
-                  <span className="truncate">Completed: {new Date(challenge.completed_at).toLocaleDateString()}</span>
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Action Button */}
-          <button
-            onClick={handleGoChallenge}
-            className="w-full px-3 sm:px-4 lg:px-6 py-3 sm:py-4 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary-dark text-light rounded-lg sm:rounded-xl font-poppins font-bold text-small sm:text-body transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 transform"
-          >
-            Got It! Let's Go 💪
-          </button>
+              {/* 2. Info Cards */}
+              <div className="space-y-3">
+                
+                {/* Habit Card */}
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-start gap-3">
+                  <div className="p-2 bg-light rounded-lg shadow-sm text-primary">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                  </div>
+                  <div>
+                    <h4 className="text-small font-bold font-roboto text-gray-400 uppercase tracking-wider mb-0.5">Target Habit</h4>
+                    <p className="text-heading font-poppins text-primary">{habitName}</p>
+                  </div>
+                </div>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-3">
+                   {/* Status */}
+                   <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                      <p className="text-small font-bold font-roboto text-gray-400 uppercase tracking-wider mb-2">Current Status</p>
+                      {getStatusBadge(challenge.status)}
+                   </div>
+
+                   {/* Date */}
+                   <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                      <p className="text-small font-bold font-roboto text-gray-400 uppercase tracking-wider mb-1">Start Date</p>
+                      <div className="flex items-center gap-1.5 text-gray-600">
+                        <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span className="text-body font-roboto font-medium">{new Date(challenge.created_at).toLocaleDateString()}</span>
+                      </div>
+                   </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* --- Footer --- */}
+            <div className="bg-gray-50 px-4 py-3 sm:px-6 flex flex-row-reverse border-t border-gray-100">
+              <button
+                type="button"
+                className="inline-flex w-full justify-center rounded-lg bg-light px-3 py-2 text-subheading font-medium text-dark shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:w-auto transition-colors font-poppins"
+                onClick={onClose}
+              >
+                Close
+              </button>
+            </div>
+
+          </div>
         </div>
       </div>
     </div>

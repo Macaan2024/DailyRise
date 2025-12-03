@@ -5,7 +5,6 @@ import Layout from '../components/Layout';
 import Header from '../components/Header';
 import Leaderboard from '../components/Leaderboard';
 import ChallengeModal from '../components/ChallengeModal';
-import ChallengeReceivedModal from '../components/ChallengeReceivedModal';
 import ViewChallengeModal from '../components/ViewChallengeModal';
 import Swal from 'sweetalert2';
 
@@ -23,8 +22,6 @@ const Community = () => {
   const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [challengedUserId, setChallengedUserId] = useState(null);
   const [pendingChallenges, setPendingChallenges] = useState([]);
-  const [showChallengeReceivedModal, setShowChallengeReceivedModal] = useState(false);
-  const [selectedChallengeId, setSelectedChallengeId] = useState(null);
   const [showViewChallengeModal, setShowViewChallengeModal] = useState(false);
   const [viewChallengeId, setViewChallengeId] = useState(null);
 
@@ -35,15 +32,6 @@ const Community = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
-
-  useEffect(() => {
-    // Auto-show first pending challenge modal if any exist
-    // FIX: Added ?. to safely access length
-    if (pendingChallenges?.length > 0 && !selectedChallengeId && !showChallengeReceivedModal) {
-      setSelectedChallengeId(pendingChallenges[0].id);
-      setShowChallengeReceivedModal(true);
-    }
-  }, [pendingChallenges, selectedChallengeId, showChallengeReceivedModal]);
 
   const fetchJoinedCommunities = async () => {
     try {
@@ -194,19 +182,12 @@ const Community = () => {
     }
   };
 
-  const handleChallengeRespond = () => {
-    // Refresh pending challenges after responding
-    setSelectedChallengeId(null);
-    fetchPendingChallenges();
-  };
-
   return (
     <Layout>
-      <Header title="Community Accountability" />
+      <Header title="Community Group" />
       
       <div className="px-4 py-4 pb-32">
         {/* Show challenge notification badge with refresh button */}
-        {/* FIX: Added ?. to safely access length in all 3 places below */}
         {pendingChallenges?.length > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 flex items-center justify-between">
             <p className="text-small text-yellow-900">
@@ -221,23 +202,34 @@ const Community = () => {
           </div>
         )}
         
-        {/* Refresh button always visible */}
-        <button
-          onClick={fetchPendingChallenges}
-          className="text-xs mb-3 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded font-medium transition flex items-center gap-1"
-        >
-          🔄 Check for Challenges
-        </button>
+        {/* --- CHANGED SECTION START --- */}
+        {/* Navigation / Actions Row */}
+        <div className="flex flex-row justify-between items-center mb-4">
+          {/* Back Button (Only visible when a community is selected) */}
+          {selectedCommunity ? (
+            <button
+              onClick={() => setSelectedCommunity(null)}
+              className="bg-gray-200 rounded-sm py-1 px-4 text-secondary text-small font-medium flex items-center"
+            >
+              Back
+            </button>
+          ) : (
+            <div></div> // Spacer to keep Refresh on the right if that's preferred, or remove to align left
+          )}
+
+          {/* Refresh Button */}
+          <button
+            onClick={fetchPendingChallenges}
+            className="text-secondary text-small font-medium px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition flex items-center gap-1"
+          >
+            Refresh
+          </button>
+        </div>
+        {/* --- CHANGED SECTION END --- */}
 
         {selectedCommunity ? (
           // Show leaderboard for selected community
           <div>
-            <button
-              onClick={() => setSelectedCommunity(null)}
-              className="text-primary text-small font-medium mb-4 flex items-center"
-            >
-              ← Back to Communities
-            </button>
             <Leaderboard 
               communityId={selectedCommunity} 
               onChallenge={handleChallenge}
@@ -272,7 +264,7 @@ const Community = () => {
                           : 'bg-primary text-white hover:bg-primary/90'
                       }`}
                     >
-                      {isJoined ? 'Leave' : '+ Join'}
+                      {isJoined ? 'Leave' : '  Join  '}
                     </button>
                   </div>
                 </div>
@@ -288,16 +280,6 @@ const Community = () => {
         challengedUserId={challengedUserId}
         onClose={() => setShowChallengeModal(false)}
         onSuccess={() => {}}
-      />
-
-      <ChallengeReceivedModal
-        isOpen={showChallengeReceivedModal}
-        challengeId={selectedChallengeId}
-        onClose={() => {
-          setShowChallengeReceivedModal(false);
-          setSelectedChallengeId(null);
-        }}
-        onRespond={handleChallengeRespond}
       />
 
       <ViewChallengeModal
