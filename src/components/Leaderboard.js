@@ -19,10 +19,8 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
       fetchLeaderboard();
       fetchSentChallenges();
       
-      // Auto-refresh sent challenges every 2 seconds
       const interval = setInterval(fetchSentChallenges, 2000);
 
-      // Subscribe to real-time leaderboard updates
       const channel = supabase.channel(`leaderboard-${communityId}`)
         .on('postgres_changes', {
           event: '*',
@@ -45,7 +43,6 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
 
   const fetchLeaderboard = async () => {
     try {
-      // Ensure your 'community_leaderboard' view includes the 'image' column
       const { data, error } = await supabase
         .from('community_leaderboard')
         .select('*')
@@ -53,7 +50,22 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
         .order('rank', { ascending: true });
 
       if (error) throw error;
-      setMembers(data || []);
+
+      // FIX: Deduplicate members based on user_id
+      // This prevents the "1 user displaying 5 times" issue
+      const uniqueMembers = [];
+      const seenIds = new Set();
+      
+      if (data) {
+        data.forEach(member => {
+          if (!seenIds.has(member.user_id)) {
+            seenIds.add(member.user_id);
+            uniqueMembers.push(member);
+          }
+        });
+      }
+
+      setMembers(uniqueMembers);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
     } finally {
@@ -63,28 +75,30 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
 
   const fetchSentChallenges = async () => {
     try {
-      // Fetch challenges where user is challenger
+      // FIX: Only fetch ACTIVE challenges (pending or accepted).
+      // We ignore 'completed' or 'declined' here.
+      // This ensures that if a previous challenge is finished, the button resets to "Challenge".
+      
+      // 1. Where I am the challenger
       const { data: sentData } = await supabase
         .from('challenges')
         .select('challenged_user_id, status')
         .eq('challenger_id', user?.id)
-        .neq('status', 'declined');
+        .in('status', ['pending', 'accepted']);
 
-      // Fetch challenges where user is challenged_user
+      // 2. Where I am the challenged user
       const { data: receivedData } = await supabase
         .from('challenges')
         .select('challenger_id, status')
         .eq('challenged_user_id', user?.id)
-        .neq('status', 'declined');
+        .in('status', ['pending', 'accepted']);
 
       const map = {};
       
-      // Add challenges where user is challenger
       sentData?.forEach(c => {
         map[c.challenged_user_id] = c.status;
       });
       
-      // Add challenges where user is challenged_user
       receivedData?.forEach(c => {
         map[c.challenger_id] = c.status;
       });
@@ -99,7 +113,7 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
     const status = sentChallenges[memberId];
     if (status === 'pending') return 'pending';
     if (status === 'accepted') return 'accepted';
-    if (status === 'completed') return 'completed';
+    // If status is undefined (because we filtered out 'completed'), it returns 'default'
     return 'default';
   };
 
@@ -107,7 +121,7 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
     const state = getButtonState(memberId);
     if (state === 'default') {
       onChallenge(memberId);
-    } else if (state === 'accepted' || state === 'completed') {
+    } else if (state === 'accepted') {
       onViewChallenge(memberId);
     }
   };
@@ -115,7 +129,7 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
   const getButtonText = (memberId) => {
     const state = getButtonState(memberId);
     if (state === 'pending') return '⏳ Pending';
-    if (state === 'accepted' || state === 'completed') return '👁️ View';
+    if (state === 'accepted') return '👁️ View';
     return 'Challenge';
   };
 
@@ -124,7 +138,7 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
     if (state === 'pending') {
       return 'px-3 py-1 bg-yellow-300 text-dark text-xs rounded font-medium cursor-not-allowed opacity-70';
     }
-    if (state === 'accepted' || state === 'completed') {
+    if (state === 'accepted') {
       return 'px-3 py-1 bg-green-500 text-white text-xs rounded font-medium hover:bg-green-600';
     }
     return 'px-3 py-1 bg-primary text-white text-xs rounded font-medium hover:bg-primary/90';
@@ -144,7 +158,6 @@ const Leaderboard = ({ communityId, onChallenge, onViewChallenge }) => {
       {members.map((member) => (
         <div key={member.user_id} className="card flex items-center justify-between">
           <div className="flex items-center flex-1">
-            {/* Display Profile Image instead of Rank Number */}
             <div className="w-10 h-10 flex-shrink-0 mr-3">
               {member.image ? (
                 <img 

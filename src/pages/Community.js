@@ -53,7 +53,7 @@ const Community = () => {
         .eq('challenged_user_id', user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
-      
+
       setPendingChallenges(data || []);
     } catch (error) {
       console.error('Error fetching pending challenges:', error);
@@ -130,22 +130,27 @@ const Community = () => {
     setShowChallengeModal(true);
   };
 
-  const handleViewChallenge = async (userId) => {
+ const handleViewChallenge = async (userId) => {
     try {
       console.log('🔍 handleViewChallenge called with userId:', userId, 'current user:', user.id);
       
-      // Try to find challenge where user is challenger
+      // FIX: Added .order() and .limit(1) to always get the LATEST active challenge
+      // This prevents crashes when users have multiple past challenges
+      
+      // 1. Try to find where I am the Challenger
       let { data } = await supabase
         .from('challenges')
         .select('*')
         .eq('challenger_id', user.id)
         .eq('challenged_user_id', userId)
         .neq('status', 'declined')
+        .order('created_at', { ascending: false }) // Get the newest one
+        .limit(1)
         .maybeSingle();
 
       console.log('📋 Challenge as challenger:', data);
 
-      // If not found, try where user is challenged_user
+      // 2. If not found, try where I am the Challenged User
       if (!data) {
         const result = await supabase
           .from('challenges')
@@ -153,7 +158,10 @@ const Community = () => {
           .eq('challenger_id', userId)
           .eq('challenged_user_id', user.id)
           .neq('status', 'declined')
+          .order('created_at', { ascending: false }) // Get the newest one
+          .limit(1)
           .maybeSingle();
+          
         data = result.data;
         console.log('📋 Challenge as challenged_user:', data);
       }
@@ -185,7 +193,7 @@ const Community = () => {
   return (
     <Layout>
       <Header title="Community Group" />
-      
+
       <div className="px-4 py-4 pb-32">
         {/* Show challenge notification badge with refresh button */}
         {pendingChallenges?.length > 0 && (
@@ -201,7 +209,7 @@ const Community = () => {
             </button>
           </div>
         )}
-        
+
         {/* --- CHANGED SECTION START --- */}
         {/* Navigation / Actions Row */}
         <div className="flex flex-row justify-between items-center mb-4">
@@ -230,8 +238,8 @@ const Community = () => {
         {selectedCommunity ? (
           // Show leaderboard for selected community
           <div>
-            <Leaderboard 
-              communityId={selectedCommunity} 
+            <Leaderboard
+              communityId={selectedCommunity}
               onChallenge={handleChallenge}
               onViewChallenge={handleViewChallenge}
             />
@@ -242,8 +250,8 @@ const Community = () => {
             {communities.map((community) => {
               const isJoined = joinedCommunities.includes(community.id);
               return (
-                <div 
-                  key={community.id} 
+                <div
+                  key={community.id}
                   className={`card ${isJoined ? 'cursor-pointer hover:shadow-md transition' : ''}`}
                   onClick={() => isJoined && setSelectedCommunity(community.id)}
                 >
@@ -258,11 +266,10 @@ const Community = () => {
                         e.stopPropagation();
                         isJoined ? leaveCommunity(community.id) : joinCommunity(community.id);
                       }}
-                      className={`px-4 py-2 text-xs rounded font-medium whitespace-nowrap ml-3 ${
-                        isJoined
+                      className={`px-4 py-2 text-xs rounded font-medium whitespace-nowrap ml-3 ${isJoined
                           ? 'bg-red-500 text-white hover:bg-red-600'
                           : 'bg-primary text-white hover:bg-primary/90'
-                      }`}
+                        }`}
                     >
                       {isJoined ? 'Leave' : '  Join  '}
                     </button>
@@ -279,7 +286,7 @@ const Community = () => {
         communityId={selectedCommunity}
         challengedUserId={challengedUserId}
         onClose={() => setShowChallengeModal(false)}
-        onSuccess={() => {}}
+        onSuccess={() => { }}
       />
 
       <ViewChallengeModal

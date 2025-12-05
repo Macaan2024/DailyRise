@@ -1,8 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import Layout from '../components/Layout';
 import Header from '../components/Header';
+
+// Helper defined outside component to avoid dependency issues
+const parseLocalLogDate = (dateStr) => {
+  if (!dateStr) return new Date();
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
 
 const Progress = () => {
   const { user } = useAuth();
@@ -11,7 +18,10 @@ const Progress = () => {
   const [selectedHabit, setSelectedHabit] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(new Date().getDate());
+  
+  // We now track BOTH Weekly and Daily stats
   const [weeklyStats, setWeeklyStats] = useState({ completed: 0, missed: 0, total: 0 });
+  const [dailyStats, setDailyStats] = useState({ completed: 0, missed: 0, total: 0 });
 
   useEffect(() => {
     if (user) {
@@ -20,7 +30,6 @@ const Progress = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, currentMonth]);
 
-  // Refresh data every 3 seconds for dynamic updates
   useEffect(() => {
     if (!user) return;
     
@@ -31,6 +40,13 @@ const Progress = () => {
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, currentMonth]);
+
+  useEffect(() => {
+    if (habits.length > 0) {
+      calculateStats(logs, habits);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [logs, habits, selectedDay, currentMonth]);
 
   const fetchData = async () => {
     try {
@@ -53,29 +69,50 @@ const Progress = () => {
           .lte('log_date', endOfMonth.toISOString().split('T')[0]);
 
         setLogs(logsData || []);
-        calculateWeeklyStats(logsData || [], habitsData);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   };
 
-  const calculateWeeklyStats = (logsData, habitsData) => {
-    const today = new Date();
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
+  const getSelectedDate = () => {
+    return new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDay);
+  };
+
+  // Calculate BOTH Daily and Weekly stats in one go
+  const calculateStats = (logsData, habitsData) => {
+    const anchorDate = getSelectedDate();
+
+    // --- DAILY STATS ---
+    const dayLogs = logsData.filter(log => {
+      const logDate = parseLocalLogDate(log.log_date);
+      return logDate.toDateString() === anchorDate.toDateString();
+    });
+    const dailyCompleted = dayLogs.filter(l => l.status === 'done').length;
+    const dailyMissed = dayLogs.filter(l => l.status === 'missed').length;
+    const dailyTotal = habitsData.length;
+    
+    setDailyStats({ completed: dailyCompleted, missed: dailyMissed, total: dailyTotal });
+
+    // --- WEEKLY STATS ---
+    const startOfWeek = new Date(anchorDate);
+    startOfWeek.setDate(anchorDate.getDate() - anchorDate.getDay()); // Sunday
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
+    endOfWeek.setHours(23, 59, 59, 999);
     
     const weekLogs = logsData.filter(log => {
-      const logDate = new Date(log.log_date);
-      return logDate >= startOfWeek && logDate <= today;
+      const logDate = parseLocalLogDate(log.log_date);
+      return logDate >= startOfWeek && logDate <= endOfWeek;
     });
 
-    const completed = weekLogs.filter(l => l.status === 'done').length;
-    const missed = weekLogs.filter(l => l.status === 'missed').length;
-    const daysInWeek = today.getDay() + 1;
-    const total = habitsData.length * daysInWeek;
+    const weeklyCompleted = weekLogs.filter(l => l.status === 'done').length;
+    const weeklyMissed = weekLogs.filter(l => l.status === 'missed').length;
+    const weeklyTotal = habitsData.length * 7; // 7 days in a week
 
-    setWeeklyStats({ completed, missed, total });
+    setWeeklyStats({ completed: weeklyCompleted, missed: weeklyMissed, total: weeklyTotal });
   };
 
   const getDaysInMonth = () => {
@@ -125,19 +162,22 @@ const Progress = () => {
   const changeMonth = (delta) => {
     const newMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + delta, 1);
     setCurrentMonth(newMonth);
-    setSelectedDay(new Date().getDate());
+    const daysInNewMonth = new Date(newMonth.getFullYear(), newMonth.getMonth() + 1, 0).getDate();
+    if (selectedDay > daysInNewMonth) {
+      setSelectedDay(daysInNewMonth);
+    }
   };
 
   const calculateStreak = () => {
-    const today = new Date();
+    const anchorDate = getSelectedDate();
     let streak = 0;
-    let currentDate = new Date(today);
+    let currentDate = new Date(anchorDate);
 
     while (true) {
       const dateStr = currentDate.toISOString().split('T')[0];
       const dayLogs = logs.filter(l => l.log_date === dateStr && l.status === 'done');
       
-      if (dayLogs.length === 0 && currentDate < today) break;
+      if (dayLogs.length === 0) break;
       if (dayLogs.length > 0) streak++;
       
       currentDate.setDate(currentDate.getDate() - 1);
@@ -147,103 +187,141 @@ const Progress = () => {
     return streak;
   };
 
-  const successRate = weeklyStats.total > 0 
+  const weeklySuccessRate = weeklyStats.total > 0 
     ? Math.round((weeklyStats.completed / weeklyStats.total) * 100) 
     : 0;
 
+  // Memoize logs for list display (keeping this DAILY as requested)
+  const selectedDayLogs = useMemo(() => {
+    const targetDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDay);
+
+    return logs.filter(log => {
+      const logDate = parseLocalLogDate(log.log_date);
+      return logDate.toDateString() === targetDate.toDateString();
+    });
+  }, [logs, currentMonth, selectedDay]);
+
+  const formattedSelectedDate = getSelectedDate().toLocaleDateString('en-US', { 
+    month: 'long', 
+    day: 'numeric' 
+  });
 
   return (
     <Layout>
       <Header title="Progress" />
       
       <div className="px-4 py-4 pb-24">
+        {/* TOP CARDS */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="card text-center">
             <p className="text-heading text-primary font-bold">{calculateStreak()}</p>
             <p className="text-small text-gray-500">Day Streak</p>
           </div>
           <div className="card text-center">
-            <p className="text-heading text-primary font-bold">{successRate}%</p>
-            <p className="text-small text-gray-500">Success Rate</p>
+            <p className="text-heading text-primary font-bold">{weeklySuccessRate}%</p>
+            <p className="text-small text-gray-500">Weekly Rate</p>
           </div>
           <div className="card text-center">
-            <p className="text-heading text-primary font-bold">{weeklyStats.completed}</p>
-            <p className="text-small text-gray-500">This Week</p>
+            <p className="text-heading text-primary font-bold">{dailyStats.completed}/{dailyStats.total}</p>
+            <p className="text-small text-gray-500">Done Today</p>
           </div>
         </div>
 
+        {/* 1. WEEKLY SUMMARY CARD */}
         <div className="card mb-6">
           <h3 className="text-subheading font-poppins mb-4">Weekly Summary</h3>
           <div className="space-y-4">
             {weeklyStats.completed === 0 && weeklyStats.missed === 0 ? (
-              <p className="text-body text-gray-500 text-center py-3">No data</p>
+              <p className="text-body text-gray-500 text-center py-3">No data for this week</p>
             ) : (
               <>
-                {weeklyStats.completed > 0 || weeklyStats.missed > 0 ? (
-                  <>
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-body text-gray-600">Completed</span>
-                        <span className="text-body font-medium text-primary">
-                          {weeklyStats.completed === 0 && weeklyStats.missed === 0 
-                            ? 'No data' 
-                            : `${Math.round((weeklyStats.completed / (weeklyStats.completed + weeklyStats.missed)) * 100)}%`}
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-3">
-                        <div 
-                          className="bg-primary h-3 rounded-full transition-all duration-300"
-                          style={{ width: weeklyStats.completed === 0 && weeklyStats.missed === 0 ? '0%' : `${Math.round((weeklyStats.completed / (weeklyStats.completed + weeklyStats.missed)) * 100)}%` }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-body text-gray-600">Missed</span>
-                        <span className="text-body font-medium text-orange-500">
-                          {weeklyStats.completed === 0 && weeklyStats.missed === 0 
-                            ? 'No data' 
-                            : `${Math.round((weeklyStats.missed / (weeklyStats.completed + weeklyStats.missed)) * 100)}%`}
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-3">
-                        <div 
-                          className="bg-orange-500 h-3 rounded-full transition-all duration-300"
-                          style={{ width: weeklyStats.completed === 0 && weeklyStats.missed === 0 ? '0%' : `${Math.round((weeklyStats.missed / (weeklyStats.completed + weeklyStats.missed)) * 100)}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-body text-gray-600">Data</span>
-                      <span className="text-body font-medium text-gray-400">No data</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div className="bg-gray-300 h-3 rounded-full"></div>
-                    </div>
+                {/* Weekly Completed */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-body text-gray-600">Completed</span>
+                    <span className="text-body font-medium text-primary">
+                      {Math.round((weeklyStats.completed / (weeklyStats.completed + weeklyStats.missed || 1)) * 100)}%
+                    </span>
                   </div>
-                )}
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-primary h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${(weeklyStats.completed / (weeklyStats.completed + weeklyStats.missed || 1)) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Weekly Missed */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-body text-gray-600">Missed</span>
+                    <span className="text-body font-medium text-orange-500">
+                      {Math.round((weeklyStats.missed / (weeklyStats.completed + weeklyStats.missed || 1)) * 100)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-orange-500 h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${(weeklyStats.missed / (weeklyStats.completed + weeklyStats.missed || 1)) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
               </>
             )}
           </div>
         </div>
 
-        {weeklyStats.completed > 0 && (
+        {/* 2. DAILY SUMMARY CARD */}
+        <div className="card mb-6">
+          <h3 className="text-subheading font-poppins mb-4">Daily Summary ({formattedSelectedDate})</h3>
+          <div className="space-y-4">
+            {dailyStats.completed === 0 && dailyStats.missed === 0 ? (
+              <p className="text-body text-gray-500 text-center py-3">No activity recorded for this day</p>
+            ) : (
+              <>
+                {/* Daily Completed */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-body text-gray-600">Completed</span>
+                    <span className="text-body font-medium text-primary">
+                      {Math.round((dailyStats.completed / dailyStats.total) * 100)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-primary h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${(dailyStats.completed / dailyStats.total) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Daily Missed */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-body text-gray-600">Missed</span>
+                    <span className="text-body font-medium text-orange-500">
+                      {Math.round((dailyStats.missed / dailyStats.total) * 100)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-orange-500 h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${(dailyStats.missed / dailyStats.total) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* LISTS: Displaying DAILY logs (as requested) */}
+        {dailyStats.completed > 0 && (
           <div className="card mb-6">
-            <h3 className="text-body font-poppins mb-3 text-primary">✓ Completed This Week - {weeklyStats.completed}</h3>
+            <h3 className="text-body font-poppins mb-3 text-primary">✓ Completed (Today)</h3>
             <div className="space-y-2">
-              {logs
-                .filter(log => {
-                  const today = new Date();
-                  const startOfWeek = new Date(today);
-                  startOfWeek.setDate(today.getDate() - today.getDay());
-                  const logDate = new Date(log.log_date);
-                  return log.status === 'done' && logDate >= startOfWeek && logDate <= today;
-                })
-                .sort((a, b) => new Date(b.log_date) - new Date(a.log_date))
+              {selectedDayLogs
+                .filter(log => log.status === 'done')
                 .map((log, idx) => {
                   const habit = habits.find(h => h.id === log.habit_id);
                   return (
@@ -251,7 +329,7 @@ const Progress = () => {
                       <span className="text-lg text-primary">✓</span>
                       <div className="flex-1">
                         <p className="text-body text-gray-700">{habit?.name}</p>
-                        <p className="text-xs text-gray-500">{new Date(log.log_date).toLocaleDateString()}</p>
+                        <p className="text-xs text-gray-500">Completed on {formattedSelectedDate}</p>
                       </div>
                     </div>
                   );
@@ -260,19 +338,12 @@ const Progress = () => {
           </div>
         )}
 
-        {weeklyStats.missed > 0 && (
+        {dailyStats.missed > 0 && (
           <div className="card mb-6">
-            <h3 className="text-body font-poppins mb-3 text-red-500">✗ Missed This Week - {weeklyStats.missed}</h3>
+            <h3 className="text-body font-poppins mb-3 text-red-500">✗ Missed (Today)</h3>
             <div className="space-y-2">
-              {logs
-                .filter(log => {
-                  const today = new Date();
-                  const startOfWeek = new Date(today);
-                  startOfWeek.setDate(today.getDate() - today.getDay());
-                  const logDate = new Date(log.log_date);
-                  return log.status === 'missed' && logDate >= startOfWeek && logDate <= today;
-                })
-                .sort((a, b) => new Date(b.log_date) - new Date(a.log_date))
+              {selectedDayLogs
+                .filter(log => log.status === 'missed')
                 .map((log, idx) => {
                   const habit = habits.find(h => h.id === log.habit_id);
                   return (
@@ -280,7 +351,7 @@ const Progress = () => {
                       <span className="text-lg text-red-500">✗</span>
                       <div className="flex-1">
                         <p className="text-body text-gray-700">{habit?.name}</p>
-                        <p className="text-xs text-gray-500">{new Date(log.log_date).toLocaleDateString()}</p>
+                        <p className="text-xs text-gray-500">Missed on {formattedSelectedDate}</p>
                       </div>
                     </div>
                   );

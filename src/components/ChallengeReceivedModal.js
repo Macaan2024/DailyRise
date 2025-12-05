@@ -44,7 +44,7 @@ const ChallengeReceivedModal = ({ isOpen, challengeId, onClose, onRespond }) => 
     try {
       const { error } = await supabase
         .from('challenges')
-        .update({ status: 'completed', completed_at: new Date().toISOString() })
+        .update({ status: 'accepted', completed_at: new Date().toISOString() })
         .eq('id', challengeId);
 
       if (error) throw error;
