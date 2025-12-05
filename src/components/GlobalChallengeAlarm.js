@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 
@@ -57,62 +57,9 @@ const GlobalChallengeAlarm = () => {
     return () => clearInterval(pollTimer);
   }, [user]);
 
-  // 3. Time Check Logic (Every 1s)
-  useEffect(() => {
-    if (activeAlarm) return; // Don't check if already ringing
+  // --- ACTIONS (Wrapped in useCallback to fix linting errors) ---
 
-    const checkTime = () => {
-      const now = new Date();
-      
-      challenges.forEach(challenge => {
-        // Skip if already handled this session
-        if (processedAlarmsRef.current.has(challenge.id)) return;
-
-        const targetTime = new Date(challenge.completed_at);
-        // difference in ms. Negative means "in the past", Positive means "future"
-        const timeDiff = targetTime.getTime() - now.getTime(); 
-
-        // DEBUG: Log time check to console to verify
-        // console.log(`Checking ${challenge.habit?.name}: Due in ${timeDiff/1000}s`);
-
-        // LOGIC FIX: 
-        // 1. timeDiff <= 0: Time has arrived or passed (prevents ringing early)
-        // 2. timeDiff > -10000: It happened within the last 10 seconds (prevents ringing for old stuff)
-        if (timeDiff <= 0 && timeDiff > -10000) { 
-           triggerAlarm(challenge);
-        }
-      });
-    };
-
-    const timer = setInterval(checkTime, 1000);
-    return () => clearInterval(timer);
-  }, [challenges, activeAlarm]);
-
-  // 4. Countdown Timer
-  useEffect(() => {
-    if (activeAlarm && countdown > 0) {
-      const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (activeAlarm && countdown === 0) {
-      stopAlarm(false);
-      alert("Time is up! You missed the challenge window.");
-    }
-  }, [activeAlarm, countdown]);
-
-  // --- ACTIONS ---
-
-  const triggerAlarm = (challenge) => {
-    console.log("⏰ ALARM TRIGGERED FOR:", challenge.habit?.name);
-    
-    // Mark as processed immediately so we don't double-trigger
-    processedAlarmsRef.current.add(challenge.id);
-    
-    setActiveAlarm(challenge);
-    setCountdown(60);
-    playAlarmSound();
-  };
-
-  const playAlarmSound = () => {
+  const playAlarmSound = useCallback(() => {
     if (!audioCtxRef.current) return;
 
     const playBeep = () => {
@@ -137,37 +84,22 @@ const GlobalChallengeAlarm = () => {
 
     playBeep();
     intervalRef.current = setInterval(playBeep, 1000);
-  };
+  }, []);
 
-  const stopAlarm = async (isSuccess) => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
+  const triggerAlarm = useCallback((challenge) => {
+    console.log("⏰ ALARM TRIGGERED FOR:", challenge.habit?.name);
     
-    const finishedChallenge = activeAlarm;
-    setActiveAlarm(null);
+    // Mark as processed immediately so we don't double-trigger
+    processedAlarmsRef.current.add(challenge.id);
     
-    if (isSuccess && finishedChallenge) {
-      try {
-        // 1. Award Points
-        await awardPoints(10, finishedChallenge.community_id);
-
-        // 2. Update DB
-        await supabase
-          .from('challenges')
-          .update({ 
-            status: 'completed',
-            winner_id: user.id 
-          })
-          .eq('id', finishedChallenge.id);
-          
-        alert(`🎉 Challenge "${finishedChallenge.habit?.name}" Completed! +10 Points!`);
-      } catch (err) {
-        console.error("Error completing challenge:", err);
-      }
-    }
-  };
+    setActiveAlarm(challenge);
+    setCountdown(60);
+    playAlarmSound();
+  }, [playAlarmSound]);
 
   // --- POINTS LOGIC ---
-  const awardPoints = async (amount, communityId) => {
+  const awardPoints = useCallback(async (amount, communityId) => {
+    if (!user) return;
     try {
       console.log(`Awarding ${amount} points...`);
       const { data: existingRecord, error: fetchError } = await supabase
@@ -199,7 +131,71 @@ const GlobalChallengeAlarm = () => {
     } catch (error) {
       console.error("Points Error:", error);
     }
-  };
+  }, [user]);
+
+  const stopAlarm = useCallback(async (isSuccess) => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    
+    const finishedChallenge = activeAlarm;
+    setActiveAlarm(null);
+    
+    if (isSuccess && finishedChallenge) {
+      try {
+        // 1. Award Points
+        await awardPoints(10, finishedChallenge.community_id);
+
+        // 2. Update DB
+        await supabase
+          .from('challenges')
+          .update({ 
+            status: 'completed',
+            winner_id: user.id 
+          })
+          .eq('id', finishedChallenge.id);
+          
+        alert(`🎉 Challenge "${finishedChallenge.habit?.name}" Completed! +10 Points!`);
+      } catch (err) {
+        console.error("Error completing challenge:", err);
+      }
+    }
+  }, [activeAlarm, user, awardPoints]);
+
+  // 3. Time Check Logic (Every 1s)
+  useEffect(() => {
+    if (activeAlarm) return; // Don't check if already ringing
+
+    const checkTime = () => {
+      const now = new Date();
+      
+      challenges.forEach(challenge => {
+        // Skip if already handled this session
+        if (processedAlarmsRef.current.has(challenge.id)) return;
+
+        const targetTime = new Date(challenge.completed_at);
+        const timeDiff = targetTime.getTime() - now.getTime(); 
+
+        // LOGIC FIX: 
+        if (timeDiff <= 0 && timeDiff > -10000) { 
+           triggerAlarm(challenge);
+        }
+      });
+    };
+
+    const timer = setInterval(checkTime, 1000);
+    return () => clearInterval(timer);
+  }, [challenges, activeAlarm, triggerAlarm]);
+
+  // 4. Countdown Timer Logic
+  useEffect(() => {
+    if (activeAlarm && countdown > 0) {
+      const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (activeAlarm && countdown === 0) {
+      // Time expired
+      stopAlarm(false);
+      alert("Time is up! You missed the challenge window.");
+    }
+  }, [activeAlarm, countdown, stopAlarm]);
 
   // --- RENDER ---
   if (!activeAlarm) {

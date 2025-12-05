@@ -134,9 +134,9 @@ const LandingPage = () => {
           </div>
           <p className="text-[10px] mb-6 font-[Roboto]">© {new Date().getFullYear()} DailyRise. All rights reserved.</p>
           <div className="flex justify-center gap-6 text-[10px] font-[Roboto]">
-            <a href="#" className="hover:text-white transition-colors">Privacy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms</a>
-            <a href="#" className="hover:text-white transition-colors">Support</a>
+            <a href="/" className="hover:text-white transition-colors">Privacy</a>
+            <a href="/" className="hover:text-white transition-colors">Terms</a>
+            <a href="/" className="hover:text-white transition-colors">Support</a>
           </div>
         </div>
       </footer>

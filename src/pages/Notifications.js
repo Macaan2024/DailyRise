@@ -19,10 +19,7 @@ const Notifications = () => {
   // --- STATE MANAGEMENT ---
   const [habits, setHabits] = useState([]);
   const [reminders, setReminders] = useState([]);
-  // Goals State Removed
   const [challenges, setChallenges] = useState([]);
-  
-  const [loading, setLoading] = useState(true);
   
   // Modal States
   const [showAddModal, setShowAddModal] = useState(false);
@@ -46,7 +43,6 @@ const Notifications = () => {
   useEffect(() => {
     if (user) {
       fetchData();
-      // fetchGoals Removed
       fetchChallenges();
       checkForPrefilled();
     }
@@ -70,8 +66,6 @@ const Notifications = () => {
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -240,8 +234,6 @@ const Notifications = () => {
       console.warn('Audio context error:', error);
     }
   };
-
-  const playPreview = (alarmType) => playAlarmSound(alarmType, 1);
 
   const stopAlarm = async (isWin = true) => {
     if (user && currentAlarmReminder && isWin) {
