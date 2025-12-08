@@ -174,7 +174,21 @@ const Home = () => {
   return (
     <Layout>
       <Header title="Daily Rise" />
-      
+
+      {/* --- DEBUG BOX (REMOVE LATER) --- */}
+      <div className="bg-black text-green-400 p-4 mb-4 rounded text-xs font-mono overflow-auto">
+        <p><strong>Logged In As:</strong> {user?.email}</p>
+        <p><strong>User ID (App):</strong> {user?.id}</p>
+        <p><strong>Habits Found:</strong> {habits.length}</p>
+        <p><strong>Habit IDs:</strong> {habits.map(h => h.id).join(', ')}</p>
+        <button
+          onClick={() => console.log('Current User:', user)}
+          className="bg-gray-800 text-white px-2 py-1 mt-2 rounded"
+        >
+          Log User to Console
+        </button>
+      </div>
+      {/* ------------------------------- */}
       <div className="px-4 py-4">
         {/* Desktop Title (Visible only on md screens and up) */}
         <div className="hidden md:flex justify-between items-center mb-8">
@@ -230,11 +244,11 @@ const Home = () => {
 
         {/* Main Content Layout: Stack on mobile, Side-by-side on desktop */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* LEFT COLUMN (Highlights) - On Desktop takes 1/3 width */}
           <div className="lg:col-span-1 order-2 lg:order-1">
             <h3 className="text-[14px] font-medium font-[Poppins] text-dark mb-4">Highlights</h3>
-            
+
             <div className="space-y-4">
               {/* Feature 1: Gamified Progress */}
               <div onClick={() => navigate('/badges')} className="card cursor-pointer hover:shadow-md transition-all hover:-translate-y-1">
@@ -256,7 +270,7 @@ const Home = () => {
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div className="flex-1">
@@ -272,9 +286,9 @@ const Home = () => {
               <div onClick={() => navigate('/progress')} className="card cursor-pointer hover:shadow-md transition-all hover:-translate-y-1">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                     <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                     </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
                   </div>
                   <div className="flex-1">
                     <p className="text-[11px] font-medium font-[Poppins] text-dark">Smart Insights</p>
@@ -287,9 +301,9 @@ const Home = () => {
               <div onClick={() => navigate('/community')} className="card cursor-pointer hover:shadow-md transition-all hover:-translate-y-1">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                     <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                     </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
                   </div>
                   <div className="flex-1">
                     <p className="text-[11px] font-medium font-[Poppins] text-dark">Community</p>

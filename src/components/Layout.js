@@ -1,6 +1,6 @@
 import React from 'react';
 import BottomNav from './BottomNav';
-import Sidebar from './Sidear';
+import Sidebar from './Sidebar';
 import { useChallenges } from '../hooks/useChallenges';
 import ChallengeReceivedModal from './ChallengeReceivedModal';
 

@@ -4,10 +4,9 @@ import { supabase } from '../lib/supabaseClient';
 import Layout from '../components/Layout';
 import Header from '../components/Header';
 
-// Helper defined outside component
+// Helper to parse YYYY-MM-DD from DB into a local Date object
 const parseLocalLogDate = (dateStr) => {
   if (!dateStr) return new Date();
-  // Ensure we have a valid YYYY-MM-DD string
   if (dateStr.includes('T')) {
       dateStr = dateStr.split('T')[0];
   }
@@ -16,6 +15,16 @@ const parseLocalLogDate = (dateStr) => {
   
   const [year, month, day] = parts.map(Number);
   return new Date(year, month - 1, day);
+};
+
+// Helper to format a Date object into YYYY-MM-DD string for DB querying
+const formatDateForDB = (date) => {
+  // Create a new date to avoid mutating the original
+  const d = new Date(date);
+  // Adjust for timezone offset to ensure we get the correct local date part
+  const offset = d.getTimezoneOffset();
+  const localDate = new Date(d.getTime() - (offset * 60 * 1000));
+  return localDate.toISOString().split('T')[0];
 };
 
 const Progress = () => {
@@ -53,20 +62,21 @@ const Progress = () => {
       setHabits(habitsData || []);
 
       if (habitsData && habitsData.length > 0) {
+        // Calculate start and end of month
         const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-        // Set end of month correctly
         const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
 
+        // Fetch logs using the FIXED date formatter
         const { data: logsData } = await supabase
           .from('habit_logs')
           .select('*')
           .in('habit_id', habitsData.map(h => h.id))
-          .gte('log_date', startOfMonth.toISOString())
-          .lte('log_date', endOfMonth.toISOString());
+          .gte('log_date', formatDateForDB(startOfMonth))
+          .lte('log_date', formatDateForDB(endOfMonth));
 
         setLogs(logsData || []);
       } else {
-        setLogs([]); // Clear logs if no habits
+        setLogs([]);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -79,12 +89,14 @@ const Progress = () => {
 
   const calculateStats = (logsData, habitsData) => {
     const anchorDate = getSelectedDate();
+    const anchorDateStr = formatDateForDB(anchorDate); // Use string comparison for accuracy
 
     // --- DAILY STATS ---
     const dayLogs = logsData.filter(log => {
-      const logDate = parseLocalLogDate(log.log_date);
-      return logDate.toDateString() === anchorDate.toDateString();
+        // Compare string parts directly to avoid timezone confusion
+        return log.log_date === anchorDateStr;
     });
+    
     const dailyCompleted = dayLogs.filter(l => l.status === 'done').length;
     const dailyMissed = dayLogs.filter(l => l.status === 'missed').length;
     const dailyTotal = habitsData.length;
@@ -131,12 +143,8 @@ const Progress = () => {
   const getLogForDay = (day) => {
     if (!day) return null;
     
-    // Create local date string YYYY-MM-DD
-    const dateObj = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-    // Adjust for timezone offset to prevent day shift when converting to string
-    const offset = dateObj.getTimezoneOffset();
-    const localDate = new Date(dateObj.getTime() - (offset * 60 * 1000));
-    const dateStr = localDate.toISOString().split('T')[0];
+    const dateToCheck = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    const dateStr = formatDateForDB(dateToCheck);
     
     if (selectedHabit) {
       return logs.find(l => l.habit_id === selectedHabit && l.log_date === dateStr);
@@ -165,6 +173,7 @@ const Progress = () => {
   const changeMonth = (delta) => {
     const newMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + delta, 1);
     setCurrentMonth(newMonth);
+    // Adjust selected day if new month has fewer days
     const daysInNewMonth = new Date(newMonth.getFullYear(), newMonth.getMonth() + 1, 0).getDate();
     if (selectedDay > daysInNewMonth) {
       setSelectedDay(daysInNewMonth);
@@ -172,21 +181,20 @@ const Progress = () => {
   };
 
   const calculateStreak = () => {
+    // Basic streak calculation
     const anchorDate = getSelectedDate();
     let streak = 0;
     let currentDate = new Date(anchorDate);
 
-    while (true) {
-      const dateStr = currentDate.toISOString().split('T')[0];
-      const dayLogs = logs.filter(l => l.log_date === dateStr && l.status === 'done');
-      
-      if (dayLogs.length === 0) break;
-      if (dayLogs.length > 0) streak++;
-      
-      currentDate.setDate(currentDate.getDate() - 1);
-      if (streak > 365) break;
+    // Loop backwards up to 365 days
+    for(let i=0; i<365; i++) {
+        const dateStr = formatDateForDB(currentDate);
+        const dayLogs = logs.filter(l => l.log_date === dateStr && l.status === 'done');
+        
+        if (dayLogs.length === 0) break; 
+        streak++;
+        currentDate.setDate(currentDate.getDate() - 1);
     }
-
     return streak;
   };
 
@@ -195,12 +203,8 @@ const Progress = () => {
     : 0;
 
   const selectedDayLogs = useMemo(() => {
-    const targetDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDay);
-
-    return logs.filter(log => {
-      const logDate = parseLocalLogDate(log.log_date);
-      return logDate.toDateString() === targetDate.toDateString();
-    });
+    const targetDateStr = formatDateForDB(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDay));
+    return logs.filter(log => log.log_date === targetDateStr);
   }, [logs, currentMonth, selectedDay]);
 
   const formattedSelectedDate = getSelectedDate().toLocaleDateString('en-US', { 
@@ -237,73 +241,43 @@ const Progress = () => {
 
         {/* MAIN LAYOUT */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Column: Calendar (7 cols on desktop) */}
             <div className="lg:col-span-7">
                 <div className="card mb-6">
                   <div className="flex items-center justify-between mb-4">
                     <button onClick={() => changeMonth(-1)} className="p-2 text-gray-400 hover:text-gray-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                     </button>
-                    <h3 className="text-[14px] font-medium font-[Poppins]">
-                      {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                    </h3>
+                    <h3 className="text-[14px] font-medium font-[Poppins]">{currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h3>
                     <button onClick={() => changeMonth(1)} className="p-2 text-gray-400 hover:text-gray-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                     </button>
                   </div>
 
                   <div className="mb-4 overflow-x-auto hide-scrollbar">
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => setSelectedHabit(null)}
-                        className={`px-3 py-1.5 rounded-full text-[10px] whitespace-nowrap transition-all ${
-                          !selectedHabit ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
-                        }`}
-                      >
-                        All Habits
-                      </button>
+                      <button onClick={() => setSelectedHabit(null)} className={`px-3 py-1.5 rounded-full text-[10px] whitespace-nowrap transition-all ${!selectedHabit ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'}`}>All Habits</button>
                       {habits.map((habit) => (
-                        <button
-                          key={habit.id}
-                          onClick={() => setSelectedHabit(habit.id)}
-                          className={`px-3 py-1.5 rounded-full text-[10px] whitespace-nowrap transition-all ${
-                            selectedHabit === habit.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
-                          }`}
-                        >
-                          {habit.name}
-                        </button>
+                        <button key={habit.id} onClick={() => setSelectedHabit(habit.id)} className={`px-3 py-1.5 rounded-full text-[10px] whitespace-nowrap transition-all ${selectedHabit === habit.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'}`}>{habit.name}</button>
                       ))}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-7 gap-1 text-center mb-2">
-                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-                      <div key={i} className="text-[10px] text-gray-400 py-1 font-[Roboto]">{day}</div>
-                    ))}
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (<div key={i} className="text-[10px] text-gray-400 py-1 font-[Roboto]">{day}</div>))}
                   </div>
 
                   <div className="grid grid-cols-7 gap-1">
                     {getDaysInMonth().map((day, idx) => {
                       if (!day) return <div key={`empty-${idx}`} className="bg-transparent"></div>;
                       const log = getLogForDay(day);
-                      const isToday = new Date().getDate() === day && 
-                        new Date().getMonth() === currentMonth.getMonth() &&
-                        new Date().getFullYear() === currentMonth.getFullYear();
+                      const isToday = new Date().getDate() === day && new Date().getMonth() === currentMonth.getMonth() && new Date().getFullYear() === currentMonth.getFullYear();
                       const isSelected = day === selectedDay;
                       
                       return (
                         <button
                           key={`day-${day}`}
                           onClick={() => setSelectedDay(day)}
-                          className={`aspect-square rounded-lg flex items-center justify-center text-[11px] font-medium transition-all ${
-                            getDayStatusColor(log)
-                          } ${isToday ? 'ring-2 ring-primary ring-offset-2' : ''} ${
-                            isSelected ? 'ring-2 ring-dark ring-offset-2' : ''
-                          } cursor-pointer hover:opacity-80`}
+                          className={`aspect-square rounded-lg flex items-center justify-center text-[11px] font-medium transition-all ${getDayStatusColor(log)} ${isToday ? 'ring-2 ring-primary ring-offset-2' : ''} ${isSelected ? 'ring-2 ring-dark ring-offset-2' : ''} cursor-pointer hover:opacity-80`}
                         >
                           {day}
                         </button>
@@ -313,7 +287,6 @@ const Progress = () => {
                 </div>
             </div>
 
-            {/* Right Column: Summaries (5 cols on desktop) */}
             <div className="lg:col-span-5 space-y-6">
                 <div className="card">
                   <h3 className="text-[14px] font-medium font-[Poppins] mb-4">Weekly Summary</h3>
