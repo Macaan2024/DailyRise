@@ -262,6 +262,8 @@ const Home = () => {
                   <div className="flex-1">
                     <p className="text-[11px] font-medium font-[Poppins] text-dark">Set & Achieve Goals</p>
                     <p className="text-[10px] font-[Roboto] text-gray-500 mt-1">Connect habits to goals</p>
+                    {/* Fixed: Added goalsCount usage here */}
+                    <p className="text-[10px] font-[Roboto] text-primary mt-1 font-medium">{goalsCount} Goal{goalsCount !== 1 ? 's' : ''} Active</p>
                   </div>
                 </div>
               </div>
