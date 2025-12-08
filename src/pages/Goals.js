@@ -397,7 +397,7 @@ const Goals = () => {
                     onClick={() => markGoalAsDone(goal.id)}
                     className="flex items-center gap-1 bg-primary text-white hover:bg-primary-dark active:scale-95 transition-all px-4 py-1.5 rounded-full text-[11px] font-medium font-[Roboto] shadow-md animate-pulse-slow"
                   >
-                    MARK DONE (+10 PTS)
+                    MARK DONE
                   </button>
                 );
               } else {

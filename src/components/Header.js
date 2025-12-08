@@ -7,7 +7,7 @@ const Header = ({ title, showProfile = true, showBack = false }) => {
   const { userProfile } = useAuth();
 
   return (
-    <header className="flex items-center justify-between py-4 px-4 bg-white sticky top-0 z-40 border-b border-gray-100">
+    <header className="md:hidden flex items-center justify-between py-4 px-4 bg-white sticky top-0 z-40 border-b border-gray-100">
       <div className="flex items-center gap-3">
         {showBack && (
           <button 

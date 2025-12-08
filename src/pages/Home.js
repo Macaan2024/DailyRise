@@ -176,169 +176,178 @@ const Home = () => {
       <Header title="Daily Rise" />
       
       <div className="px-4 py-4">
+        {/* Desktop Title (Visible only on md screens and up) */}
+        <div className="hidden md:flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-[14px] font-medium font-[Poppins] text-dark">Dashboard</h1>
+            <p className="text-[11px] font-[Roboto] text-gray-500">Welcome back, {user?.firstname || 'User'}!</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[11px] font-[Roboto] text-gray-500">{getDayName()}</p>
+            <p className="text-[14px] font-medium font-[Poppins] text-dark">{formatDate()}</p>
+          </div>
+        </div>
+
         {/* Tagline Section */}
-        <div className="bg-gradient-to-r from-primary to-green-700 rounded-xl p-4 mb-6 text-white">
-          <h1 className="text-heading font-poppins font-bold mb-1">Level up your life,</h1>
-          <p className="text-body">every single day</p>
-          <p className="text-xs mt-3 opacity-90">Join thousands building better habits together</p>
+        <div className="bg-gradient-to-r from-primary to-green-700 rounded-xl p-6 mb-8 text-white shadow-lg">
+          <h1 className="text-[14px] md:text-[18px] font-medium font-[Poppins] mb-1">Level up your life,</h1>
+          <p className="text-[11px] md:text-[13px] font-[Roboto]">every single day</p>
+          <p className="text-[10px] md:text-[11px] mt-3 opacity-90 font-[Roboto]">Join thousands building better habits together</p>
         </div>
 
-        <div className="mb-6">
-          <p className="text-body text-gray-500">{getDayName()}</p>
-          <p className="text-subheading text-dark">{formatDate()}</p>
+        {/* Mobile Date Header (Hidden on Desktop) */}
+        <div className="mb-6 md:hidden">
+          <p className="text-[11px] font-[Roboto] text-gray-500">{getDayName()}</p>
+          <p className="text-[14px] font-medium font-[Poppins] text-dark">{formatDate()}</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="card">
-            <p className="text-body text-gray-500">Today's Progress</p>
-            <p className="text-heading text-primary mt-1">{completedCount}/{totalCount}</p>
-            <p className="text-xs text-gray-400 mt-1">{progressPercent}% Done</p>
+        {/* Stats Grid - 2 cols on mobile, 4 on desktop */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="card hover:shadow-md transition-shadow">
+            <p className="text-[11px] font-[Roboto] text-gray-500">Today's Progress</p>
+            <p className="text-[18px] font-medium font-[Poppins] text-primary mt-1">{completedCount}/{totalCount}</p>
+            <div className="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+              <div className="bg-primary h-1.5 rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
+            </div>
+            <p className="text-[10px] font-[Roboto] text-gray-400 mt-1">{progressPercent}% Done</p>
           </div>
-          <div className="card">
-            <p className="text-body text-gray-500">Badges Earned</p>
-            <p className="text-heading text-primary mt-1">{badgesCount}</p>
-            <p className="text-xs text-gray-400 mt-1">Achievements</p>
+          <div className="card hover:shadow-md transition-shadow">
+            <p className="text-[11px] font-[Roboto] text-gray-500">Badges Earned</p>
+            <p className="text-[18px] font-medium font-[Poppins] text-primary mt-1">{badgesCount}</p>
+            <p className="text-[10px] font-[Roboto] text-gray-400 mt-1">Achievements</p>
           </div>
-          <div className="card">
-            <p className="text-body text-gray-500">Points</p>
-            <p className="text-heading text-primary mt-1">{userPoints}</p>
-            <p className="text-xs text-gray-400 mt-1">Total Earned</p>
+          <div className="card hover:shadow-md transition-shadow">
+            <p className="text-[11px] font-[Roboto] text-gray-500">Points</p>
+            <p className="text-[18px] font-medium font-[Poppins] text-primary mt-1">{userPoints}</p>
+            <p className="text-[10px] font-[Roboto] text-gray-400 mt-1">Total Earned</p>
           </div>
-          <div className="card">
-            <p className="text-body text-gray-500">Communities</p>
-            <p className="text-heading text-primary mt-1">{communityCount}</p>
-            <p className="text-xs text-gray-400 mt-1">Groups Joined</p>
+          <div className="card hover:shadow-md transition-shadow">
+            <p className="text-[11px] font-[Roboto] text-gray-500">Communities</p>
+            <p className="text-[18px] font-medium font-[Poppins] text-primary mt-1">{communityCount}</p>
+            <p className="text-[10px] font-[Roboto] text-gray-400 mt-1">Groups Joined</p>
           </div>
         </div>
 
-        {/* DailyRise Highlights */}
-        <div className="mb-6">
-          <h3 className="text-subheading font-poppins text-dark mb-3">What Makes Us Unique</h3>
+        {/* Main Content Layout: Stack on mobile, Side-by-side on desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Feature 1: Gamified Progress */}
-          <div 
-            onClick={() => navigate('/badges')}
-            className="card mb-3 cursor-pointer hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-lg">🏆</span>
+          {/* LEFT COLUMN (Highlights) - On Desktop takes 1/3 width */}
+          <div className="lg:col-span-1 order-2 lg:order-1">
+            <h3 className="text-[14px] font-medium font-[Poppins] text-dark mb-4">Highlights</h3>
+            
+            <div className="space-y-4">
+              {/* Feature 1: Gamified Progress */}
+              <div onClick={() => navigate('/badges')} className="card cursor-pointer hover:shadow-md transition-all hover:-translate-y-1">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-9 1h18M7 20h10a2 2 0 002-2V9a2 2 0 00-2-2H7a2 2 0 00-2 2v9a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[11px] font-medium font-[Poppins] text-dark">Gamified Progress</p>
+                    <p className="text-[10px] font-[Roboto] text-gray-500 mt-1">Earn badges & rewards</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-body font-medium text-dark">Gamified Progress</p>
-                <p className="text-xs text-gray-500 mt-1">Earn badges & rewards as you complete habits</p>
-                <p className="text-xs text-primary font-medium mt-2">{badgesCount} Badge{badgesCount !== 1 ? 's' : ''} Earned</p>
+
+              {/* Feature 2: Goals */}
+              <div onClick={() => navigate('/goals')} className="card cursor-pointer hover:shadow-md transition-all hover:-translate-y-1">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[11px] font-medium font-[Poppins] text-dark">Set & Achieve Goals</p>
+                    <p className="text-[10px] font-[Roboto] text-gray-500 mt-1">Connect habits to goals</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Feature 3: Smart Insights */}
+              <div onClick={() => navigate('/progress')} className="card cursor-pointer hover:shadow-md transition-all hover:-translate-y-1">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                     <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                     </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[11px] font-medium font-[Poppins] text-dark">Smart Insights</p>
+                    <p className="text-[10px] font-[Roboto] text-gray-500 mt-1">View your progress calendar</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Feature 4: Community */}
+              <div onClick={() => navigate('/community')} className="card cursor-pointer hover:shadow-md transition-all hover:-translate-y-1">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                     <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                     </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[11px] font-medium font-[Poppins] text-dark">Community</p>
+                    <p className="text-[10px] font-[Roboto] text-gray-500 mt-1">Join groups and compete</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Feature 2: Goals Setting */}
-          <div 
-            onClick={() => navigate('/goals')}
-            className="card mb-3 cursor-pointer hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-lg">🎯</span>
-              </div>
-              <div className="flex-1">
-                <p className="text-body font-medium text-dark">Set & Achieve Goals</p>
-                <p className="text-xs text-gray-500 mt-1">Connect habits with your personal goals</p>
-                <p className="text-xs text-primary font-medium mt-2">{goalsCount} Goal{goalsCount !== 1 ? 's' : ''} Created</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Feature 3: Smart Insights */}
-          <div 
-            onClick={() => navigate('/progress')}
-            className="card mb-3 cursor-pointer hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-lg">📈</span>
-              </div>
-              <div className="flex-1">
-                <p className="text-body font-medium text-dark">Smart Insights</p>
-                <p className="text-xs text-gray-500 mt-1">Detailed analytics & trends for your habits</p>
-                <p className="text-xs text-primary font-medium mt-2">View your progress calendar</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Feature 4: Community Accountability */}
-          <div 
-            onClick={() => navigate('/community')}
-            className="card mb-6 cursor-pointer hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-lg">🤝</span>
-              </div>
-              <div className="flex-1">
-                <p className="text-body font-medium text-dark">Community Accountability</p>
-                <p className="text-xs text-gray-500 mt-1">Join groups and build habits together</p>
-                <p className="text-xs text-primary font-medium mt-2">{communityCount} Group{communityCount !== 1 ? 's' : ''} Joined</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-subheading font-poppins text-dark">My Habits</h2>
-          {/* UPDATED: Add Habit button with solid green background, no icon */}
-          <button
-            onClick={() => {
-              setEditHabit(null);
-              setShowAddModal(true);
-            }}
-            className="px-4 py-2 bg-[#043915] text-white text-xs rounded-lg font-medium hover:bg-[#043915]/90 transition-colors"
-          >
-            Add Habit
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : habits.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <p className="text-body text-gray-500 mb-4">No habits yet. Start by adding one!</p>
-            <div className="flex gap-2">
+          {/* RIGHT COLUMN (Habits List) - On Desktop takes 2/3 width */}
+          <div className="lg:col-span-2 order-1 lg:order-2">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[14px] font-medium font-[Poppins] text-dark">My Habits</h2>
               <button
-                onClick={() => setShowAddModal(true)}
-                className="btn-primary flex-1"
-              >
-                Create New Habit
-              </button>
-              <button
-                onClick={() => setShowSelectModal(true)}
-                className="flex-1 py-3 rounded-lg bg-gray-100 text-gray-600 text-body font-medium"
-              >
-                Select Habit
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {habits.map((habit) => (
-              <HabitCard
-                key={habit.id}
-                habit={habit}
-                onEdit={() => {
-                  setEditHabit(habit);
+                onClick={() => {
+                  setEditHabit(null);
                   setShowAddModal(true);
                 }}
-              />
-            ))}
+                className="px-4 py-2 bg-[#043915] text-white text-[10px] rounded-lg font-medium hover:bg-[#043915]/90 transition-colors shadow-sm font-[Roboto]"
+              >
+                + Add Habit
+              </button>
+            </div>
+
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : habits.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+                <p className="text-[11px] font-[Roboto] text-gray-500 mb-4">No habits yet. Start by adding one!</p>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="btn-primary text-[11px] font-[Roboto]"
+                >
+                  Create New Habit
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+                {habits.map((habit) => (
+                  <HabitCard
+                    key={habit.id}
+                    habit={habit}
+                    onEdit={() => {
+                      setEditHabit(habit);
+                      setShowAddModal(true);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {showAddModal && (
