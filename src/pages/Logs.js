@@ -130,115 +130,127 @@ const Logs = () => {
     <Layout>
       <Header title="Habit Logs" />
       
-      <div className="px-4 py-4">
-        <div className="mb-4 overflow-x-auto hide-scrollbar">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setSelectedHabit(null)}
-              className={`px-3 py-1.5 rounded-full text-small whitespace-nowrap transition-all ${
-                !selectedHabit ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              All Habits
-            </button>
-            {habits.map((habit) => (
-              <button
-                key={habit.id}
-                onClick={() => setSelectedHabit(habit.id)}
-                className={`px-3 py-1.5 rounded-full text-small whitespace-nowrap transition-all ${
-                  selectedHabit === habit.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                {habit.name}
-              </button>
-            ))}
-          </div>
+      <div className="px-4 py-4 pb-32">
+        {/* Desktop Header */}
+        <div className="hidden md:block mb-6 border-b border-gray-100 pb-4">
+          <h1 className="text-[14px] font-medium font-[Poppins] text-dark">History & Logs</h1>
+          <p className="text-[11px] font-[Roboto] text-gray-500">Review your past activity</p>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : Object.keys(groupedLogs).length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
+        <div className="max-w-3xl mx-auto">
+            {/* Filter Bar */}
+            <div className="mb-6 overflow-x-auto hide-scrollbar">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSelectedHabit(null)}
+                  className={`px-3 py-1.5 rounded-full text-[11px] whitespace-nowrap transition-all font-[Roboto] ${
+                    !selectedHabit ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  All Habits
+                </button>
+                {habits.map((habit) => (
+                  <button
+                    key={habit.id}
+                    onClick={() => setSelectedHabit(habit.id)}
+                    className={`px-3 py-1.5 rounded-full text-[11px] whitespace-nowrap transition-all font-[Roboto] ${
+                      selectedHabit === habit.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {habit.name}
+                  </button>
+                ))}
+              </div>
             </div>
-            <p className="text-body text-gray-500">No logs yet. Start tracking your habits!</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {Object.entries(groupedLogs).map(([date, dateLogs]) => (
-              <div key={date}>
-                <h3 className="text-body text-gray-500 mb-3">{formatDate(date)}</h3>
-                <div className="space-y-2">
-                  {dateLogs.map((log) => (
-                    <div key={log.id} className="card">
-                      <div className="flex items-start gap-3">
-                        {getStatusIcon(log.status)}
-                        <div className="flex-1">
-                          <h4 className="text-subheading text-dark">{log.habits?.name || 'Unknown Habit'}</h4>
-                          <p className="text-small text-gray-400 capitalize">{log.status}</p>
-                          
-                          {editingLog === log.id ? (
-                            <div className="mt-2">
-                              <textarea
-                                value={noteInput}
-                                onChange={(e) => setNoteInput(e.target.value)}
-                                placeholder="Add a note..."
-                                className="input-field text-small resize-none"
-                                rows={2}
-                              />
-                              <div className="flex gap-2 mt-2">
-                                <button
-                                  onClick={() => handleUpdateNote(log.id)}
-                                  className="btn-primary text-small py-1 px-3"
+
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : Object.keys(groupedLogs).length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-200">
+                <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <p className="text-[11px] text-gray-500 font-[Roboto]">No logs found for this selection.</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {Object.entries(groupedLogs).map(([date, dateLogs]) => (
+                  <div key={date} className="animate-fade-in">
+                    <h3 className="text-[12px] font-medium font-[Poppins] text-gray-500 mb-3 sticky top-0 bg-gray-50 py-2 z-10">
+                        {formatDate(date)}
+                    </h3>
+                    <div className="space-y-2">
+                      {dateLogs.map((log) => (
+                        <div key={log.id} className="card hover:shadow-sm transition-all border border-transparent hover:border-gray-100">
+                          <div className="flex items-start gap-3">
+                            {getStatusIcon(log.status)}
+                            <div className="flex-1">
+                              <h4 className="text-[13px] font-medium text-dark font-[Poppins]">{log.habits?.name || 'Unknown Habit'}</h4>
+                              <p className="text-[10px] text-gray-400 capitalize font-[Roboto]">{log.status}</p>
+                              
+                              {editingLog === log.id ? (
+                                <div className="mt-2 bg-gray-50 p-2 rounded-lg">
+                                  <textarea
+                                    value={noteInput}
+                                    onChange={(e) => setNoteInput(e.target.value)}
+                                    placeholder="Add a note..."
+                                    className="w-full p-2 text-[11px] border border-gray-200 rounded bg-white resize-none focus:outline-none focus:border-primary"
+                                    rows={2}
+                                    autoFocus
+                                  />
+                                  <div className="flex gap-2 mt-2 justify-end">
+                                    <button
+                                      onClick={() => {
+                                        setEditingLog(null);
+                                        setNoteInput('');
+                                      }}
+                                      className="text-[10px] text-gray-500 hover:text-dark px-3 py-1"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      onClick={() => handleUpdateNote(log.id)}
+                                      className="bg-primary text-white text-[10px] px-3 py-1 rounded hover:bg-primary/90"
+                                    >
+                                      Save
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : log.notes ? (
+                                <p 
+                                  className="text-[11px] text-gray-600 mt-2 cursor-pointer hover:text-primary transition-colors bg-gray-50 p-2 rounded border border-transparent hover:border-gray-200"
+                                  onClick={() => {
+                                    setEditingLog(log.id);
+                                    setNoteInput(log.notes);
+                                  }}
                                 >
-                                  Save
-                                </button>
+                                  {log.notes}
+                                </p>
+                              ) : (
                                 <button
                                   onClick={() => {
-                                    setEditingLog(null);
+                                    setEditingLog(log.id);
                                     setNoteInput('');
                                   }}
-                                  className="btn-ghost text-small py-1 px-3"
+                                  className="text-[10px] text-primary mt-1 hover:underline font-medium"
                                 >
-                                  Cancel
+                                  + Add note
                                 </button>
-                              </div>
+                              )}
                             </div>
-                          ) : log.notes ? (
-                            <p 
-                              className="text-body text-gray-600 mt-2 cursor-pointer hover:text-primary"
-                              onClick={() => {
-                                setEditingLog(log.id);
-                                setNoteInput(log.notes);
-                              }}
-                            >
-                              {log.notes}
-                            </p>
-                          ) : (
-                            <button
-                              onClick={() => {
-                                setEditingLog(log.id);
-                                setNoteInput('');
-                              }}
-                              className="text-small text-primary mt-2"
-                            >
-                              + Add note
-                            </button>
-                          )}
+                          </div>
                         </div>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            )}
+        </div>
       </div>
     </Layout>
   );

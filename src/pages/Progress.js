@@ -4,10 +4,17 @@ import { supabase } from '../lib/supabaseClient';
 import Layout from '../components/Layout';
 import Header from '../components/Header';
 
-// Helper defined outside component to avoid dependency issues
+// Helper defined outside component
 const parseLocalLogDate = (dateStr) => {
   if (!dateStr) return new Date();
-  const [year, month, day] = dateStr.split('-').map(Number);
+  // Ensure we have a valid YYYY-MM-DD string
+  if (dateStr.includes('T')) {
+      dateStr = dateStr.split('T')[0];
+  }
+  const parts = dateStr.split('-');
+  if (parts.length < 3) return new Date();
+  
+  const [year, month, day] = parts.map(Number);
   return new Date(year, month - 1, day);
 };
 
@@ -19,7 +26,6 @@ const Progress = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(new Date().getDate());
   
-  // We now track BOTH Weekly and Daily stats
   const [weeklyStats, setWeeklyStats] = useState({ completed: 0, missed: 0, total: 0 });
   const [dailyStats, setDailyStats] = useState({ completed: 0, missed: 0, total: 0 });
 
@@ -27,17 +33,6 @@ const Progress = () => {
     if (user) {
       fetchData();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, currentMonth]);
-
-  useEffect(() => {
-    if (!user) return;
-    
-    const interval = setInterval(() => {
-      fetchData();
-    }, 3000);
-
-    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, currentMonth]);
 
@@ -59,16 +54,19 @@ const Progress = () => {
 
       if (habitsData && habitsData.length > 0) {
         const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+        // Set end of month correctly
         const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
 
         const { data: logsData } = await supabase
           .from('habit_logs')
           .select('*')
           .in('habit_id', habitsData.map(h => h.id))
-          .gte('log_date', startOfMonth.toISOString().split('T')[0])
-          .lte('log_date', endOfMonth.toISOString().split('T')[0]);
+          .gte('log_date', startOfMonth.toISOString())
+          .lte('log_date', endOfMonth.toISOString());
 
         setLogs(logsData || []);
+      } else {
+        setLogs([]); // Clear logs if no habits
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -79,7 +77,6 @@ const Progress = () => {
     return new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDay);
   };
 
-  // Calculate BOTH Daily and Weekly stats in one go
   const calculateStats = (logsData, habitsData) => {
     const anchorDate = getSelectedDate();
 
@@ -96,11 +93,11 @@ const Progress = () => {
 
     // --- WEEKLY STATS ---
     const startOfWeek = new Date(anchorDate);
-    startOfWeek.setDate(anchorDate.getDate() - anchorDate.getDay()); // Sunday
+    startOfWeek.setDate(anchorDate.getDate() - anchorDate.getDay()); 
     startOfWeek.setHours(0, 0, 0, 0);
     
     const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
+    endOfWeek.setDate(startOfWeek.getDate() + 6); 
     endOfWeek.setHours(23, 59, 59, 999);
     
     const weekLogs = logsData.filter(log => {
@@ -110,7 +107,7 @@ const Progress = () => {
 
     const weeklyCompleted = weekLogs.filter(l => l.status === 'done').length;
     const weeklyMissed = weekLogs.filter(l => l.status === 'missed').length;
-    const weeklyTotal = habitsData.length * 7; // 7 days in a week
+    const weeklyTotal = habitsData.length * 7; 
 
     setWeeklyStats({ completed: weeklyCompleted, missed: weeklyMissed, total: weeklyTotal });
   };
@@ -133,7 +130,13 @@ const Progress = () => {
 
   const getLogForDay = (day) => {
     if (!day) return null;
-    const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    
+    // Create local date string YYYY-MM-DD
+    const dateObj = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    // Adjust for timezone offset to prevent day shift when converting to string
+    const offset = dateObj.getTimezoneOffset();
+    const localDate = new Date(dateObj.getTime() - (offset * 60 * 1000));
+    const dateStr = localDate.toISOString().split('T')[0];
     
     if (selectedHabit) {
       return logs.find(l => l.habit_id === selectedHabit && l.log_date === dateStr);
@@ -152,9 +155,9 @@ const Progress = () => {
   const getDayStatusColor = (log) => {
     if (!log) return 'bg-gray-100';
     switch (log.status) {
-      case 'done': return 'bg-primary';
-      case 'missed': return 'bg-red-400';
-      case 'partial': return 'bg-yellow-400';
+      case 'done': return 'bg-primary text-white';
+      case 'missed': return 'bg-red-400 text-white';
+      case 'partial': return 'bg-yellow-400 text-white';
       default: return 'bg-gray-100';
     }
   };
@@ -191,7 +194,6 @@ const Progress = () => {
     ? Math.round((weeklyStats.completed / weeklyStats.total) * 100) 
     : 0;
 
-  // Memoize logs for list display (keeping this DAILY as requested)
   const selectedDayLogs = useMemo(() => {
     const targetDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDay);
 
@@ -211,246 +213,161 @@ const Progress = () => {
       <Header title="Progress" />
       
       <div className="px-4 py-4 pb-24">
-        {/* TOP CARDS */}
+        {/* Desktop Header */}
+        <div className="hidden md:block mb-6">
+          <h1 className="text-[14px] font-medium font-[Poppins] text-dark">Analytics & Progress</h1>
+          <p className="text-[11px] font-[Roboto] text-gray-500">Track your consistency over time</p>
+        </div>
+
+        {/* TOP STATS CARDS */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="card text-center">
-            <p className="text-heading text-primary font-bold">{calculateStreak()}</p>
-            <p className="text-small text-gray-500">Day Streak</p>
+          <div className="card text-center py-4 bg-white shadow-sm border border-gray-100">
+            <p className="text-[18px] text-primary font-medium font-[Poppins]">{calculateStreak()}</p>
+            <p className="text-[10px] text-gray-500 font-[Roboto]">Day Streak</p>
           </div>
-          <div className="card text-center">
-            <p className="text-heading text-primary font-bold">{weeklySuccessRate}%</p>
-            <p className="text-small text-gray-500">Weekly Rate</p>
+          <div className="card text-center py-4 bg-white shadow-sm border border-gray-100">
+            <p className="text-[18px] text-primary font-medium font-[Poppins]">{weeklySuccessRate}%</p>
+            <p className="text-[10px] text-gray-500 font-[Roboto]">Weekly Rate</p>
           </div>
-          <div className="card text-center">
-            <p className="text-heading text-primary font-bold">{dailyStats.completed}/{dailyStats.total}</p>
-            <p className="text-small text-gray-500">Done Today</p>
-          </div>
-        </div>
-
-        {/* 1. WEEKLY SUMMARY CARD */}
-        <div className="card mb-6">
-          <h3 className="text-subheading font-poppins mb-4">Weekly Summary</h3>
-          <div className="space-y-4">
-            {weeklyStats.completed === 0 && weeklyStats.missed === 0 ? (
-              <p className="text-body text-gray-500 text-center py-3">No data for this week</p>
-            ) : (
-              <>
-                {/* Weekly Completed */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-body text-gray-600">Completed</span>
-                    <span className="text-body font-medium text-primary">
-                      {Math.round((weeklyStats.completed / (weeklyStats.completed + weeklyStats.missed || 1)) * 100)}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div 
-                      className="bg-primary h-3 rounded-full transition-all duration-300"
-                      style={{ width: `${(weeklyStats.completed / (weeklyStats.completed + weeklyStats.missed || 1)) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Weekly Missed */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-body text-gray-600">Missed</span>
-                    <span className="text-body font-medium text-orange-500">
-                      {Math.round((weeklyStats.missed / (weeklyStats.completed + weeklyStats.missed || 1)) * 100)}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div 
-                      className="bg-orange-500 h-3 rounded-full transition-all duration-300"
-                      style={{ width: `${(weeklyStats.missed / (weeklyStats.completed + weeklyStats.missed || 1)) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-              </>
-            )}
+          <div className="card text-center py-4 bg-white shadow-sm border border-gray-100">
+            <p className="text-[18px] text-primary font-medium font-[Poppins]">{dailyStats.completed}/{dailyStats.total}</p>
+            <p className="text-[10px] text-gray-500 font-[Roboto]">Done Today</p>
           </div>
         </div>
 
-        {/* 2. DAILY SUMMARY CARD */}
-        <div className="card mb-6">
-          <h3 className="text-subheading font-poppins mb-4">Daily Summary ({formattedSelectedDate})</h3>
-          <div className="space-y-4">
-            {dailyStats.completed === 0 && dailyStats.missed === 0 ? (
-              <p className="text-body text-gray-500 text-center py-3">No activity recorded for this day</p>
-            ) : (
-              <>
-                {/* Daily Completed */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-body text-gray-600">Completed</span>
-                    <span className="text-body font-medium text-primary">
-                      {Math.round((dailyStats.completed / dailyStats.total) * 100)}%
-                    </span>
+        {/* MAIN LAYOUT */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Column: Calendar (7 cols on desktop) */}
+            <div className="lg:col-span-7">
+                <div className="card mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <button onClick={() => changeMonth(-1)} className="p-2 text-gray-400 hover:text-gray-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <h3 className="text-[14px] font-medium font-[Poppins]">
+                      {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </h3>
+                    <button onClick={() => changeMonth(1)} className="p-2 text-gray-400 hover:text-gray-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div 
-                      className="bg-primary h-3 rounded-full transition-all duration-300"
-                      style={{ width: `${(dailyStats.completed / dailyStats.total) * 100}%` }}
-                    ></div>
+
+                  <div className="mb-4 overflow-x-auto hide-scrollbar">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setSelectedHabit(null)}
+                        className={`px-3 py-1.5 rounded-full text-[10px] whitespace-nowrap transition-all ${
+                          !selectedHabit ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        All Habits
+                      </button>
+                      {habits.map((habit) => (
+                        <button
+                          key={habit.id}
+                          onClick={() => setSelectedHabit(habit.id)}
+                          className={`px-3 py-1.5 rounded-full text-[10px] whitespace-nowrap transition-all ${
+                            selectedHabit === habit.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
+                          }`}
+                        >
+                          {habit.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                      <div key={i} className="text-[10px] text-gray-400 py-1 font-[Roboto]">{day}</div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-1">
+                    {getDaysInMonth().map((day, idx) => {
+                      if (!day) return <div key={`empty-${idx}`} className="bg-transparent"></div>;
+                      const log = getLogForDay(day);
+                      const isToday = new Date().getDate() === day && 
+                        new Date().getMonth() === currentMonth.getMonth() &&
+                        new Date().getFullYear() === currentMonth.getFullYear();
+                      const isSelected = day === selectedDay;
+                      
+                      return (
+                        <button
+                          key={`day-${day}`}
+                          onClick={() => setSelectedDay(day)}
+                          className={`aspect-square rounded-lg flex items-center justify-center text-[11px] font-medium transition-all ${
+                            getDayStatusColor(log)
+                          } ${isToday ? 'ring-2 ring-primary ring-offset-2' : ''} ${
+                            isSelected ? 'ring-2 ring-dark ring-offset-2' : ''
+                          } cursor-pointer hover:opacity-80`}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
+            </div>
 
-                {/* Daily Missed */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-body text-gray-600">Missed</span>
-                    <span className="text-body font-medium text-orange-500">
-                      {Math.round((dailyStats.missed / dailyStats.total) * 100)}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div 
-                      className="bg-orange-500 h-3 rounded-full transition-all duration-300"
-                      style={{ width: `${(dailyStats.missed / dailyStats.total) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* LISTS: Displaying DAILY logs (as requested) */}
-        {dailyStats.completed > 0 && (
-          <div className="card mb-6">
-            <h3 className="text-body font-poppins mb-3 text-primary">✓ Completed (Today)</h3>
-            <div className="space-y-2">
-              {selectedDayLogs
-                .filter(log => log.status === 'done')
-                .map((log, idx) => {
-                  const habit = habits.find(h => h.id === log.habit_id);
-                  return (
-                    <div key={`${log.id}-${idx}`} className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
-                      <span className="text-lg text-primary">✓</span>
-                      <div className="flex-1">
-                        <p className="text-body text-gray-700">{habit?.name}</p>
-                        <p className="text-xs text-gray-500">Completed on {formattedSelectedDate}</p>
+            {/* Right Column: Summaries (5 cols on desktop) */}
+            <div className="lg:col-span-5 space-y-6">
+                <div className="card">
+                  <h3 className="text-[14px] font-medium font-[Poppins] mb-4">Weekly Summary</h3>
+                  {weeklyStats.completed === 0 && weeklyStats.missed === 0 ? (
+                      <p className="text-[11px] text-gray-500 text-center py-3">No data for this week</p>
+                  ) : (
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[11px] text-gray-600">Completed</span>
+                          <span className="text-[11px] font-medium text-primary">{Math.round((weeklyStats.completed / (weeklyStats.completed + weeklyStats.missed || 1)) * 100)}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="bg-primary h-2 rounded-full transition-all duration-300" style={{ width: `${(weeklyStats.completed / (weeklyStats.completed + weeklyStats.missed || 1)) * 100}%` }}></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[11px] text-gray-600">Missed</span>
+                          <span className="text-[11px] font-medium text-orange-500">{Math.round((weeklyStats.missed / (weeklyStats.completed + weeklyStats.missed || 1)) * 100)}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="bg-orange-500 h-2 rounded-full transition-all duration-300" style={{ width: `${(weeklyStats.missed / (weeklyStats.completed + weeklyStats.missed || 1)) * 100}%` }}></div>
+                        </div>
                       </div>
                     </div>
-                  );
-                })}
-            </div>
-          </div>
-        )}
+                  )}
+                </div>
 
-        {dailyStats.missed > 0 && (
-          <div className="card mb-6">
-            <h3 className="text-body font-poppins mb-3 text-red-500">✗ Missed (Today)</h3>
-            <div className="space-y-2">
-              {selectedDayLogs
-                .filter(log => log.status === 'missed')
-                .map((log, idx) => {
-                  const habit = habits.find(h => h.id === log.habit_id);
-                  return (
-                    <div key={`${log.id}-${idx}`} className="flex items-center gap-2 p-2 bg-red-50 rounded-lg">
-                      <span className="text-lg text-red-500">✗</span>
-                      <div className="flex-1">
-                        <p className="text-body text-gray-700">{habit?.name}</p>
-                        <p className="text-xs text-gray-500">Missed on {formattedSelectedDate}</p>
-                      </div>
-                    </div>
-                  );
-                })}
+                <div className="card">
+                    <h3 className="text-[14px] font-medium font-[Poppins] mb-3">Activity for {formattedSelectedDate}</h3>
+                    {selectedDayLogs.length === 0 ? (
+                        <p className="text-[11px] text-gray-400 italic">No activity recorded.</p>
+                    ) : (
+                        <div className="space-y-2">
+                            {selectedDayLogs.map((log, idx) => {
+                                const habit = habits.find(h => h.id === log.habit_id);
+                                const isDone = log.status === 'done';
+                                return (
+                                    <div key={`${log.id}-${idx}`} className={`flex items-center gap-3 p-3 rounded-lg border ${isDone ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isDone ? 'bg-primary text-white' : 'bg-red-500 text-white'}`}>
+                                            {isDone ? '✓' : '✗'}
+                                        </div>
+                                        <div>
+                                            <p className="text-[11px] font-medium text-dark">{habit?.name}</p>
+                                            <p className="text-[10px] text-gray-500">{isDone ? 'Completed' : 'Missed'}</p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
             </div>
-          </div>
-        )}
-
-        <div className="card mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <button onClick={() => changeMonth(-1)} className="p-2 text-gray-400 hover:text-gray-600">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h3 className="text-subheading font-poppins">
-              {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </h3>
-            <button onClick={() => changeMonth(1)} className="p-2 text-gray-400 hover:text-gray-600">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="mb-4 overflow-x-auto hide-scrollbar">
-            <div className="flex gap-2">
-              <button
-                onClick={() => setSelectedHabit(null)}
-                className={`px-3 py-1.5 rounded-full text-small whitespace-nowrap transition-all ${
-                  !selectedHabit ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                All Habits
-              </button>
-              {habits.map((habit) => (
-                <button
-                  key={habit.id}
-                  onClick={() => setSelectedHabit(habit.id)}
-                  className={`px-3 py-1.5 rounded-full text-small whitespace-nowrap transition-all ${
-                    selectedHabit === habit.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  {habit.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-7 gap-1 text-center mb-2">
-            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-              <div key={i} className="text-small text-gray-400 py-1">{day}</div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-7 gap-1">
-            {getDaysInMonth().map((day, idx) => {
-              if (!day) {
-                return <div key={`empty-${idx}`} className="bg-transparent"></div>;
-              }
-              
-              const log = getLogForDay(day);
-              const isToday = new Date().getDate() === day && 
-                new Date().getMonth() === currentMonth.getMonth() &&
-                new Date().getFullYear() === currentMonth.getFullYear();
-              const isSelected = day === selectedDay;
-              
-              return (
-                <button
-                  key={`day-${day}`}
-                  onClick={() => setSelectedDay(day)}
-                  className={`aspect-square rounded-lg flex items-center justify-center text-small font-medium transition-all ${
-                    getDayStatusColor(log)
-                  } ${isToday ? 'ring-2 ring-primary ring-offset-2' : ''} ${
-                    isSelected ? 'ring-2 ring-dark ring-offset-2' : ''
-                  } ${
-                    log?.status === 'done' ? 'text-white' : 'text-gray-600'
-                  } cursor-pointer hover:opacity-80`}
-                >
-                  {day}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-gray-100">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-primary"></div>
-              <span className="text-small text-gray-500">Done</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-red-400"></div>
-              <span className="text-small text-gray-500">Missed</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-gray-100"></div>
-              <span className="text-small text-gray-500">No data</span>
-            </div>
-          </div>
         </div>
       </div>
     </Layout>

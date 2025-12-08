@@ -17,11 +17,10 @@ export const AuthProvider = ({ children }) => {
 
   const setUserSession = async (userId) => {
     try {
-      // Set the user session context for RLS policies
+      // Set the user session context for RLS policies if needed
       await supabase.rpc('set_current_user', { user_id: userId });
     } catch (error) {
-      // If RLS function doesn't exist yet, silently continue
-      // This is a fallback - the RLS policies will still work with basic queries
+      // Silently fail if RPC doesn't exist, not critical for custom auth
       console.log('Note: RLS session context set via headers');
     }
   };
@@ -29,14 +28,32 @@ export const AuthProvider = ({ children }) => {
   const checkUser = async () => {
     try {
       const storedUser = localStorage.getItem('dailyrise_user');
+      
       if (storedUser) {
         const userData = JSON.parse(storedUser);
+
+        // --- DYNAMIC CHECK ---
+        // Verify this user actually exists in the new Database
+        const { data: dbUser, error } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', userData.id)
+          .single();
+
+        if (error || !dbUser) {
+          console.warn("User ID in Local Storage does not exist in DB. Logging out.");
+          await signOut(); // Clear invalid data
+          return;
+        }
+
+        // If valid, restore session
         setUser(userData);
         await setUserSession(userData.id);
         await fetchUserProfile(userData.id);
       }
     } catch (error) {
       console.error('Error checking user:', error);
+      await signOut();
     } finally {
       setLoading(false);
     }
@@ -123,6 +140,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('dailyrise_user');
     setUser(null);
     setUserProfile(null);
+    setLoading(false);
   };
 
   const updateProfile = async (updates) => {
