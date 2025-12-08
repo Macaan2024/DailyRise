@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import Swal from 'sweetalert2'; // Import SweetAlert
 import Layout from '../components/Layout';
 import Header from '../components/Header';
 import ViewChallengeModal from '../components/ViewChallengeModal';
@@ -89,7 +90,7 @@ const Notifications = () => {
     }
   };
 
-  // --- REUSABLE FUNCTION: AWARD POINTS (Kept for Alarm Stop) ---
+  // --- REUSABLE FUNCTION: AWARD POINTS ---
   const awardPoints = async (amount = 10) => {
     if (!user) return;
     
@@ -235,38 +236,79 @@ const Notifications = () => {
     }
   };
 
+  // --- UPDATED STOP ALARM FUNCTION ---
   const stopAlarm = async (isWin = true) => {
-    if (user && currentAlarmReminder && isWin) {
-      // 1. Award Points to DB
-      await awardPoints(10);
-
-      // 2. Check for challenge win
-      try {
-        const { data: challenges } = await supabase
-          .from('challenges')
-          .select('id')
-          .eq('habit_id', currentAlarmReminder.habitId)
-          .eq('status', 'completed')
-          .is('winner_id', null)
-          .maybeSingle();
-
-        if (challenges) {
-          await supabase
-            .from('challenges')
-            .update({ winner_id: user.id })
-            .eq('id', challenges.id);
-        }
-      } catch (error) {
-        console.error('Error checking for challenges:', error);
-      }
-    }
-    
+    // 1. Stop the Sound immediately
     setIsAlarmRinging(false);
     if (alarmIntervalId) {
       clearInterval(alarmIntervalId);
       setAlarmIntervalId(null);
     }
     setTimeout(() => setCurrentAlarmReminder(null), 100);
+
+    if (user && currentAlarmReminder && isWin) {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+
+        // 2. Insert into habit_logs
+        const { error: logError } = await supabase
+          .from('habit_logs')
+          .insert([
+            {
+              habit_id: currentAlarmReminder.habitId,
+              log_date: today,
+              status: 'done',
+              notes: 'Completed via Alarm'
+            }
+          ]);
+
+        if (logError) throw logError;
+
+        // 3. Award Points
+        await awardPoints(10);
+
+        // 4. Check for Challenges
+        try {
+          const { data: challenges } = await supabase
+            .from('challenges')
+            .select('id')
+            .eq('habit_id', currentAlarmReminder.habitId)
+            .eq('status', 'completed')
+            .is('winner_id', null)
+            .maybeSingle();
+
+          if (challenges) {
+            await supabase
+              .from('challenges')
+              .update({ winner_id: user.id })
+              .eq('id', challenges.id);
+          }
+        } catch (error) {
+          console.error('Error checking for challenges:', error);
+        }
+
+        // 5. SUCCESS ALERT
+        Swal.fire({
+          title: 'Habit Completed!',
+          text: `You marked "${currentAlarmReminder.habitName}" as done and earned 10 points!`,
+          icon: 'success',
+          confirmButtonColor: '#043915',
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+      } catch (error) {
+        console.error('Error processing alarm completion:', error);
+        
+        // 6. ERROR ALERT
+        Swal.fire({
+          title: 'Error Saving Progress',
+          text: 'We could not save your habit log. Please check your internet connection.',
+          icon: 'error',
+          confirmButtonColor: '#d33',
+        });
+      }
+    }
   };
 
   useEffect(() => {
