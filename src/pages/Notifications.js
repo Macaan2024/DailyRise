@@ -338,6 +338,9 @@ const Notifications = () => {
       <Header title="Notifications" />
       
       <div className="px-4 py-4 pb-32">
+        {/* Desktop Title */}
+        <h1 className="hidden md:block text-[14px] font-medium font-[Poppins] text-dark mb-6">Alerts & Notifications</h1>
+
         {notificationPermission !== 'granted' && (
           <div className="card mb-4 bg-yellow-50 border border-yellow-200">
              <div className="flex items-start gap-3">
@@ -348,133 +351,218 @@ const Notifications = () => {
               </div>
               <div className="flex-1">
                 <h3 className="text-subheading text-yellow-800">Enable Notifications</h3>
-                <button onClick={requestNotificationPermission} className="mt-2 bg-yellow-500 text-white px-3 py-1 rounded text-small">Enable</button>
+                <button onClick={requestNotificationPermission} className="mt-2 bg-yellow-500 text-white px-3 py-1 rounded text-[10px] font-medium font-[Roboto]">Enable</button>
               </div>
             </div>
           </div>
         )}
 
-        {/* --- SECTION 1: MY REMINDERS --- */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-subheading font-poppins text-dark">My Reminders</h2>
-          <button onClick={() => setShowAddModal(true)} className="flex items-center gap-1 text-body text-primary">
-            <span className="text-xl">+</span> Add
-          </button>
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          
+          {/* --- SECTION 1: MY REMINDERS --- */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[14px] font-medium font-[Poppins] text-dark">My Reminders</h2>
+              <button onClick={() => setShowAddModal(true)} className="flex items-center gap-1 text-[11px] font-[Roboto] text-primary hover:text-primary-dark transition-colors">
+                <span className="text-lg">+</span> Add New
+              </button>
+            </div>
 
-        {reminders.length === 0 ? (
-          <p className="text-center text-gray-500 py-4 mb-8">No reminders set.</p>
-        ) : (
-          <div className="space-y-3 mb-8 border-b border-gray-100 pb-6">
-            {reminders.map((reminder) => (
-              <div key={reminder.id} className="card">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${reminder.enabled ? 'bg-primary' : 'bg-gray-200'}`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-subheading text-dark">{reminder.habitName}</h3>
-                    <p className="text-body text-gray-500">{formatTime(reminder.time)}</p>
-                  </div>
-                  <button onClick={() => toggleReminder(reminder.id)} className={`w-10 h-5 rounded-full ${reminder.enabled ? 'bg-primary' : 'bg-gray-300'} relative transition-colors`}>
-                    <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${reminder.enabled ? 'left-5' : 'left-0.5'}`}></div>
-                  </button>
-                  <button onClick={() => deleteReminder(reminder.id)} className="text-gray-400 hover:text-red-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
+            {reminders.length === 0 ? (
+              <div className="text-center py-8 bg-white rounded-xl border border-dashed border-gray-200">
+                <p className="text-[11px] font-[Roboto] text-gray-400">No reminders set.</p>
               </div>
-            ))}
-          </div>
-        )}
-
-        {/* --- SECTION 2: MY CHALLENGES --- */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-subheading font-poppins text-dark">My Challenges</h2>
-          <button onClick={fetchChallenges} className="text-xs text-gray-500 hover:text-primary">Refresh</button>
-        </div>
-
-        {challenges.length === 0 ? (
-          <div className="text-center py-4">
-            <p className="text-body text-gray-500">No active challenges.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {challenges.map((challenge) => {
-              const isChallenger = challenge.challenger_id === user.id;
-              const opponent = isChallenger ? challenge.challengee : challenge.challenger;
-              const statusInfo = getStatusDetails(challenge.status);
-              
-              return (
-                <div 
-                  key={challenge.id} 
-                  className="card cursor-pointer hover:shadow-md transition-all"
-                  onClick={() => {
-                    setSelectedChallengeId(challenge.id);
-                    setShowViewChallengeModal(true);
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border border-gray-100">
-                      {opponent?.image ? (
-                        <img src={opponent.image} alt="User" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-500 font-bold text-xs">
-                          {opponent?.firstname?.[0] || '?'}
-                        </div>
-                      )}
+            ) : (
+              <div className="space-y-3 mb-8">
+                {reminders.map((reminder) => (
+                  <div key={reminder.id} className="card hover:shadow-md transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${reminder.enabled ? 'bg-primary' : 'bg-gray-200'}`}>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-[14px] font-medium font-[Poppins] text-dark">{reminder.habitName}</h3>
+                        <p className="text-[11px] font-[Roboto] text-gray-500">{formatTime(reminder.time)}</p>
+                      </div>
+                      <button onClick={() => toggleReminder(reminder.id)} className={`w-10 h-5 rounded-full ${reminder.enabled ? 'bg-primary' : 'bg-gray-300'} relative transition-colors`}>
+                        <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all ${reminder.enabled ? 'left-5' : 'left-0.5'}`}></div>
+                      </button>
+                      <button onClick={() => deleteReminder(reminder.id)} className="text-gray-400 hover:text-red-500 ml-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-subheading font-medium text-dark truncate">
-                        Vs. {opponent?.firstname}
-                      </h3>
-                      <p className="text-xs text-gray-500 truncate">
-                        {challenge.habit?.name}
-                      </p>
-                    </div>
-                    
-                    <span className={`text-[10px] px-2 py-1 rounded-full font-medium ${statusInfo.color}`}>
-                      {statusInfo.label}
-                    </span>
                   </div>
-                </div>
-              );
-            })}
+                ))}
+              </div>
+            )}
           </div>
-        )}
+
+          {/* --- SECTION 2: MY CHALLENGES --- */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[14px] font-medium font-[Poppins] text-dark">My Challenges</h2>
+              <button onClick={fetchChallenges} className="text-[10px] font-[Roboto] text-gray-500 hover:text-primary">Refresh</button>
+            </div>
+
+            {challenges.length === 0 ? (
+              <div className="text-center py-8 bg-white rounded-xl border border-dashed border-gray-200">
+                <p className="text-[11px] font-[Roboto] text-gray-400">No active challenges.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {challenges.map((challenge) => {
+                  const isChallenger = challenge.challenger_id === user.id;
+                  const opponent = isChallenger ? challenge.challengee : challenge.challenger;
+                  const statusInfo = getStatusDetails(challenge.status);
+                  
+                  return (
+                    <div 
+                      key={challenge.id} 
+                      className="card cursor-pointer hover:shadow-md transition-all"
+                      onClick={() => {
+                        setSelectedChallengeId(challenge.id);
+                        setShowViewChallengeModal(true);
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border border-gray-100">
+                          {opponent?.image ? (
+                            <img src={opponent.image} alt="User" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-500 font-bold text-xs">
+                              {opponent?.firstname?.[0] || '?'}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-[14px] font-medium font-[Poppins] text-dark truncate">
+                            Vs. {opponent?.firstname}
+                          </h3>
+                          <p className="text-[10px] font-[Roboto] text-gray-500 truncate">
+                            {challenge.habit?.name}
+                          </p>
+                        </div>
+                        
+                        <span className={`text-[10px] px-2 py-1 rounded-full font-medium font-[Roboto] ${statusInfo.color}`}>
+                          {statusInfo.label}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* --- MODALS --- */}
+      {/* --- ADD REMINDER MODAL (Responsive) --- */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end overflow-hidden">
-          <div className="bg-white w-full max-h-[85vh] rounded-t-3xl overflow-hidden flex flex-col animate-slide-up">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="text-heading font-poppins text-dark">Add Reminder</h2>
-              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
+          {/* Backdrop click to close */}
+          <div className="absolute inset-0" onClick={() => setShowAddModal(false)}></div>
+
+          <div className="bg-white w-full max-h-[85vh] md:max-w-sm rounded-t-3xl md:rounded-2xl overflow-hidden flex flex-col z-10 shadow-2xl animate-slide-up md:animate-none">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+              <div>
+                <h2 className="text-[14px] font-medium font-[Poppins] text-dark">Add Reminder</h2>
+                <p className="text-[10px] text-gray-500 font-[Roboto] mt-0.5">Set a daily alert for your habit</p>
+              </div>
+              <button 
+                onClick={() => setShowAddModal(false)} 
+                className="p-1.5 bg-white rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all shadow-sm border border-gray-100"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
+            
+            {/* Modal Body */}
             <div className="p-6 space-y-6 overflow-y-auto">
                 <div>
-                  <label className="block text-gray-600 mb-2 font-medium">Habit</label>
+                  <label className="block text-[11px] font-medium font-[Roboto] text-gray-600 mb-2">Select Habit</label>
                   {isPrefilledChallenge ? (
-                    <div className="p-3 bg-gray-100 rounded text-gray-700">{prefilledHabitName}</div>
+                    <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] text-gray-700 font-medium flex items-center gap-2">
+                       <span className="text-primary">🎯</span> {prefilledHabitName}
+                    </div>
                   ) : (
-                    <select value={selectedHabit} onChange={(e) => setSelectedHabit(e.target.value)} className="w-full p-3 border rounded-lg bg-white">
-                      <option value="">Choose a habit...</option>
-                      {habits.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
-                    </select>
+                    <div className="relative">
+                      <select 
+                        value={selectedHabit} 
+                        onChange={(e) => setSelectedHabit(e.target.value)} 
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl text-[14px] text-dark focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none bg-white"
+                      >
+                        <option value="">Choose a habit...</option>
+                        {habits.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
+                      </select>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   )}
                 </div>
+
                 <div>
-                   <label className="block text-gray-600 mb-2 font-medium">Time</label>
-                   <input type="time" value={reminderTime} onChange={(e) => setReminderTime(e.target.value)} className="w-full p-3 border rounded-lg" />
+                   <label className="block text-[11px] font-medium font-[Roboto] text-gray-600 mb-2">Reminder Time</label>
+                   <div className="relative">
+                      <input 
+                        type="time" 
+                        value={reminderTime} 
+                        onChange={(e) => setReminderTime(e.target.value)} 
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl text-[14px] text-dark focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
+                      />
+                   </div>
                 </div>
-                <button onClick={addReminder} disabled={!selectedHabit} className="w-full bg-primary text-white py-3 rounded-lg font-medium disabled:opacity-50">
-                    Add Reminder
+
+                <div>
+                   <label className="block text-[11px] font-medium font-[Roboto] text-gray-600 mb-2">Alarm Sound</label>
+                   <div className="grid grid-cols-1 gap-2">
+                      {alarmSounds.map((sound) => (
+                        <div 
+                          key={sound.id}
+                          onClick={() => {
+                            setSelectedAlarm(sound.id);
+                            // Optional: Preview sound here if desired
+                          }}
+                          className={`flex items-center justify-between px-4 py-3 rounded-xl border cursor-pointer transition-all ${
+                            selectedAlarm === sound.id 
+                              ? 'border-primary bg-primary/5 shadow-sm' 
+                              : 'border-gray-100 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className="text-[13px] font-[Roboto] text-dark">{sound.name}</span>
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectedAlarm === sound.id ? 'border-primary' : 'border-gray-300'}`}>
+                             {selectedAlarm === sound.id && <div className="w-2 h-2 rounded-full bg-primary"></div>}
+                          </div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 pt-2 border-t border-gray-50 bg-white">
+                <button 
+                  onClick={addReminder} 
+                  disabled={!selectedHabit} 
+                  className="w-full bg-primary text-white py-3.5 rounded-xl font-medium text-[11px] font-[Roboto] hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
+                >
+                    Set Reminder
+                </button>
+                <button 
+                  onClick={() => setShowAddModal(false)}
+                  className="w-full mt-3 py-3 text-gray-500 text-[11px] font-medium font-[Roboto] hover:text-dark transition-colors"
+                >
+                  Cancel
                 </button>
             </div>
           </div>
@@ -483,14 +571,20 @@ const Notifications = () => {
 
       {/* Alarm Modal */}
       {isAlarmRinging && currentAlarmReminder && (
-        <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 max-w-sm mx-4 text-center">
-            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+        <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full mx-auto text-center shadow-2xl animate-bounce-slight">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse ring-8 ring-red-50/50">
                <span className="text-4xl">⏰</span>
             </div>
-            <h2 className="text-2xl font-bold mb-2">It's Time!</h2>
-            <p className="text-gray-600 mb-6">Complete your habit: <br/><strong>{currentAlarmReminder.habitName}</strong></p>
-            <button onClick={() => stopAlarm(true)} className="w-full py-3 bg-red-500 text-white rounded-lg font-bold text-lg hover:bg-red-600">
+            <h2 className="text-2xl font-bold font-[Poppins] text-dark mb-2">It's Time!</h2>
+            <p className="text-[14px] font-[Roboto] text-gray-500 mb-8">
+              Complete your habit: <br/>
+              <span className="text-dark font-medium text-lg mt-1 block">{currentAlarmReminder.habitName}</span>
+            </p>
+            <button 
+              onClick={() => stopAlarm(true)} 
+              className="w-full py-4 bg-red-500 text-white rounded-xl font-bold text-[14px] font-[Poppins] hover:bg-red-600 active:scale-95 transition-all shadow-lg shadow-red-200"
+            >
               STOP ALARM (+10 PTS)
             </button>
           </div>
