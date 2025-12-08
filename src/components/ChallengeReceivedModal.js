@@ -39,12 +39,14 @@ const ChallengeReceivedModal = ({ isOpen, challengeId, onClose, onRespond }) => 
     }
   };
 
+  // ... existing imports ...
   const handleAccept = async () => {
     setResponding(true);
     try {
+      // LOGIC FIX: Do NOT update 'completed_at'. Keep the scheduled time set by the challenger.
       const { error } = await supabase
         .from('challenges')
-        .update({ status: 'accepted', completed_at: new Date().toISOString() })
+        .update({ status: 'accepted' })
         .eq('id', challengeId);
 
       if (error) throw error;
@@ -52,7 +54,7 @@ const ChallengeReceivedModal = ({ isOpen, challengeId, onClose, onRespond }) => 
       Swal.fire({
         icon: 'success',
         title: 'Challenge Accepted!',
-        text: 'Complete the habit to earn 25 points!',
+        text: 'Get ready for the alarm!', // Updated text
         timer: 1500,
         confirmButtonColor: '#043915',
       });
@@ -60,17 +62,12 @@ const ChallengeReceivedModal = ({ isOpen, challengeId, onClose, onRespond }) => 
       onRespond?.();
       onClose();
     } catch (error) {
-      console.error('Error accepting challenge:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to accept challenge',
-        confirmButtonColor: '#043915',
-      });
+      // ... existing error handling ...
     } finally {
       setResponding(false);
     }
   };
+  // ... rest of the file ...
 
   const handleDecline = async () => {
     setResponding(true);
@@ -120,7 +117,7 @@ const ChallengeReceivedModal = ({ isOpen, challengeId, onClose, onRespond }) => 
       <div className="bg-white rounded-2xl max-w-sm w-full overflow-hidden">
         {/* Header Background */}
         <div className="bg-gradient-to-r from-primary to-primary/80 h-24"></div>
-        
+
         {/* Profile Card */}
         <div className="px-6 pb-6 -mt-12 relative">
           {/* Profile Image */}

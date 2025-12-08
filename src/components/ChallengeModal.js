@@ -48,33 +48,36 @@ const ChallengeModal = ({ isOpen, communityId, challengedUserId, onClose, onSucc
 
     setLoading(true);
     try {
-      // Insert challenge without reminder_time (work around Supabase cache issue)
-      const { data: challengeData, error } = await supabase
+      // --- LOGIC FIX: Calculate Target Time ---
+      const now = new Date();
+      const [hours, minutes] = reminderTime.split(':').map(Number);
+      const targetDate = new Date();
+      targetDate.setHours(hours, minutes, 0, 0);
+
+      // If the time has already passed today, schedule it for tomorrow
+      if (targetDate <= now) {
+        targetDate.setDate(targetDate.getDate() + 1);
+      }
+
+      // Insert challenge with the calculated target time
+      const { error } = await supabase
         .from('challenges')
         .insert([{
           challenger_id: user.id,
           challenged_user_id: challengedUserId,
           habit_id: selectedHabit,
           community_id: communityId,
-          status: 'pending'
-        }])
-        .select();
+          status: 'pending',
+          completed_at: targetDate.toISOString() // Save scheduled time here
+        }]);
 
       if (error) throw error;
-
-      // Store reminder_time separately in localStorage
-      if (challengeData && challengeData.length > 0) {
-        const challengeId = challengeData[0].id;
-        const reminderTimes = JSON.parse(localStorage.getItem('challenge_reminder_times') || '{}');
-        reminderTimes[challengeId] = reminderTime;
-        localStorage.setItem('challenge_reminder_times', JSON.stringify(reminderTimes));
-      }
 
       Swal.fire({
         icon: 'success',
         title: 'Challenge Sent!',
-        text: 'Your challenge has been sent',
-        timer: 1500,
+        text: `Challenge set for ${targetDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`,
+        timer: 2000,
         confirmButtonColor: '#043915',
       });
 
@@ -131,7 +134,7 @@ const ChallengeModal = ({ isOpen, communityId, challengedUserId, onClose, onSucc
         </div>
 
         <p className="text-small text-gray-600 mb-6">
-          Set a reminder time so both of you complete the habit together. Winner earns 10 points!
+          Set a time. The alarm will ring for BOTH of you at this time. First to stop it wins!
         </p>
 
         <div className="flex gap-3 sticky bottom-0 bg-white pt-4">
